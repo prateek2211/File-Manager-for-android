@@ -1,0 +1,20 @@
+<resources>
+    <string name="app_name">File Manager</string>
+    <string name="storage_statistics">Storage Statistics</string>
+    <string name="sort_by">Sort By</string>
+    <string name="view">View</string>
+    <string name="search">Search</string>
+    <string name="internal_storage">Internal Storage</string>
+    <string name="sd_card">SD Card</string>
+    <string name="file_icon">File icon</string>
+    <string name="my_string">Hello World Woo Woo I Have written a txt file in Document public external storage directory</string>
+    <string name="cut">Cut</string>
+    <string name="copy">Copy</string>
+    <string name="delete">Delete</string>
+    <string name="rename">Rename</string>
+    <string name="ascending">Ascending</string>
+    <string name="date_modified">Date Modified</string>
+    <string name="refresh">Refresh</string>
+    <string name="descending">Descending</string>
+    <string name="please_select_the_order">Please Select The Order</string>
+</resources>

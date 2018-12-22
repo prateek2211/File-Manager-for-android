@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+    <item
+        android:title="@string/refresh"
+        android:id="@+id/refresh"
+        android:icon="@drawable/ic_refresh_black_24dp"
+        app:showAsAction="ifRoom"/>
+    <item
+        android:id="@+id/sortby"
+        android:title="@string/sort_by">
+        <menu>
+            <item
+                android:id="@+id/sortByName"
+                android:title="Name" />
+            <item
+                android:id="@+id/sortByDate"
+                android:title="@string/date_modified" />
+            <item
+                android:id="@+id/sortBySize"
+                android:title="Size" />
+        </menu>
+    </item>
+
+    <item
+        android:id="@+id/stats"
+        android:title="@string/storage_statistics" />
+    <item
+        android:id="@+id/view"
+        android:icon="@drawable/ic_grid_on_black_24dp"
+        android:title="@string/view"
+        app:showAsAction="always" />
+    <item
+        android:id="@+id/search"
+        android:icon="@drawable/ic_search_black_24dp"
+        android:title="@string/search"
+        app:actionViewClass="android.widget.SearchView"
+        app:showAsAction="always|collapseActionView" />
+</menu>
