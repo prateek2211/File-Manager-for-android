@@ -10,6 +10,7 @@
 
     <style name="my_theme" parent="AppTheme" >
         <item name="colorPrimaryDark">@color/colorPrimaryDark</item>
+        <item name="windowActionModeOverlay">true</item>
+        <item name="actionModeBackground">@color/actionmodeback</item>
     </style>
-
 </resources>
