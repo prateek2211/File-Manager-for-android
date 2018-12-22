@@ -17,6 +17,7 @@ import android.support.v7.widget.DividerItemDecoration;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
+import android.view.ActionMode;
 import android.view.ContextMenu;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -26,6 +27,7 @@ import android.view.View;
 import java.io.File;
 
 public class MainActivity extends AppCompatActivity {
+    static boolean isSelection;
     RecyclerView recyclerView;
     Toolbar toolbar;
     Context context;
@@ -35,6 +37,7 @@ public class MainActivity extends AppCompatActivity {
     android.widget.SearchView searchView;
     MyRecyclerAdapter myRecyclerAdapter;
     int sortFlag;
+    ActionMode actionMode;
 
     @Override
     public void onBackPressed() {
@@ -53,6 +56,7 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         sortFlag = 0;
+        isSelection = false;
         setContentView(R.layout.activity_main);
         toolbar = findViewById(R.id.tool);
         context = MainActivity.this;
@@ -76,6 +80,7 @@ public class MainActivity extends AppCompatActivity {
         recyclerView.setLayoutManager(layoutManager);
         recyclerView.addItemDecoration(new DividerItemDecoration(getApplicationContext(), DividerItemDecoration.VERTICAL));
         data_manager = new Data_Manager();
+
         path = Environment.getExternalStorageDirectory();
         data_manager.setRecycler(path, sortFlag);
         myRecyclerAdapter = new MyRecyclerAdapter(data_manager);
@@ -84,29 +89,63 @@ public class MainActivity extends AppCompatActivity {
         recyclerView.addOnItemTouchListener(new Listener_for_Recycler(getApplicationContext(), recyclerView, new Listener_for_Recycler.ClickListener() {
             @Override
             public void onClick(View view, int position) {
-                path = data_manager.getFiles(position);
-                sortFlag = 0;
-                if (path.isDirectory()) {
-                    data_manager.setRecycler(path, sortFlag);
-                    myRecyclerAdapter.notifyDataSetChanged();
-                } else if (path.toString().contains(".txt")) {
-                    Intent intent = new Intent();
-                    StrictMode.VmPolicy.Builder builder = new StrictMode.VmPolicy.Builder();
-                    StrictMode.setVmPolicy(builder.build());
-                    Uri uri = Uri.fromFile(path);
-                    intent.setAction(Intent.ACTION_VIEW);
-                    intent.setDataAndType(uri, "text/plain");
-                    intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-                    context.startActivity(intent);
+                if (!isSelection) {
+                    path = data_manager.getFiles(position);
+                    sortFlag = 0;
+                    if (path.isDirectory()) {
+                        data_manager.setRecycler(path, sortFlag);
+                        myRecyclerAdapter.notifyDataSetChanged();
+                    } else if (path.toString().contains(".txt")) {
+                        Intent intent = new Intent();
+                        StrictMode.VmPolicy.Builder builder = new StrictMode.VmPolicy.Builder();
+                        StrictMode.setVmPolicy(builder.build());
+                        Uri uri = Uri.fromFile(path);
+                        intent.setAction(Intent.ACTION_VIEW);
+                        intent.setDataAndType(uri, "text/plain");
+                        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                        context.startActivity(intent);
+                    }
+                } else {
+                    myRecyclerAdapter.toggleSelection(position);
+                    if (myRecyclerAdapter.getSelectedItemCount() > 1) {
+                        actionMode.getMenu().findItem(R.id.rename).setEnabled(false);
+                        actionMode.getMenu().findItem(R.id.properties).setEnabled(false);
+                    }
+                    actionMode.setTitle(myRecyclerAdapter.getSelectedItemCount() + " Selected");
+                    if (myRecyclerAdapter.getSelectedItemCount() == 0) {
+                        myRecyclerAdapter.clearSelection();
+                        isSelection = false;
+                        actionMode.finish();
+                    }
                 }
             }
 
             @Override
             public void onLongClick(View view, int position) {
-                view.showContextMenu();
+                if (!isSelection) {
+                    actionMode = startActionMode(new ActionModeCallBack(myRecyclerAdapter,MainActivity.this));
+                    myRecyclerAdapter.toggleSelection(position);
+                    actionMode.setTitle("1 Seleced");
+                    isSelection = true;
+                }
             }
         }));
     }
+
+//    private void onListItemSelect(int position) {
+//        myRecyclerAdapter.toggleSelection(position);//Toggle the selection
+//        boolean hasCheckedItems = myRecyclerAdapter.getSelectedCount() > 0;//Check if any items are already selected or not
+//        if (hasCheckedItems && mActionMode == null)
+//            // there are some selected items, start the actionMode
+//            mActionMode = ((AppCompatActivity) this).startSupportActionMode(new Toolbar_ActionMode_Callback(this, adapter, item_models, false));
+//        else if (!hasCheckedItems && mActionMode != null)
+//            // there no selected items, finish the actionMode
+//            mActionMode.finish();
+//
+//        if (mActionMode != null)
+//            //set action mode title on item selection
+//            mActionMode.setTitle(String.valueOf(adapter.getSelectedCount()) + " selected");
+//    }
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
@@ -140,7 +179,7 @@ public class MainActivity extends AppCompatActivity {
     @Override
     public void onCreateContextMenu(ContextMenu menu, View v, ContextMenu.ContextMenuInfo menuInfo) {
         MenuInflater inflater = getMenuInflater();
-        inflater.inflate(R.menu.context_menu, menu);
+        inflater.inflate(R.menu.contextual_menu, menu);
     }
 
     @Override
