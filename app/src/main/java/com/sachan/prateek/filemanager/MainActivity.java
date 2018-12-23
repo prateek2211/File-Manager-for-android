@@ -123,7 +123,7 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onLongClick(View view, int position) {
                 if (!isSelection) {
-                    actionMode = startActionMode(new ActionModeCallBack(myRecyclerAdapter,MainActivity.this));
+                    actionMode = startActionMode(new ActionModeCallBack(myRecyclerAdapter, MainActivity.this, data_manager, path, sortFlag));
                     myRecyclerAdapter.toggleSelection(position);
                     actionMode.setTitle("1 Seleced");
                     isSelection = true;
@@ -169,7 +169,7 @@ public class MainActivity extends AppCompatActivity {
                 myRecyclerAdapter.notifyDataSetChanged();
                 break;
             case R.id.refresh:
-                myRecyclerAdapter.notifyDataSetChanged();
+                refresh();
                 recyclerView.scrollToPosition(0);
                 break;
         }
@@ -214,6 +214,11 @@ public class MainActivity extends AppCompatActivity {
             }
         });
         return super.onCreateOptionsMenu(menu);
+    }
+
+    void refresh() {
+        data_manager.setRecycler(path, sortFlag);
+        myRecyclerAdapter.notifyDataSetChanged();
     }
 
 }

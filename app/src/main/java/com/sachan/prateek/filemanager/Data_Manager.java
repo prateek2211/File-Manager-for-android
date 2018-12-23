@@ -1,7 +1,5 @@
 package com.sachan.prateek.filemanager;
 
-import android.support.v7.app.AppCompatActivity;
-
 import java.io.File;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -10,12 +8,12 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 
-public class Data_Manager extends AppCompatActivity {
+public class Data_Manager {
     List<String> name;
-    List<String> date_and_time;
     File[] files;
+    private List<String> date_and_time;
 
-    public void setRecycler(File path, int sortFlags) {
+    void setRecycler(File path, int sortFlags) {
         date_and_time = new ArrayList<>();
         name = new ArrayList<>();
         files = path.listFiles();
@@ -38,19 +36,19 @@ public class Data_Manager extends AppCompatActivity {
         }
     }
 
-    public File getFiles(int position) {
+    File getFiles(int position) {
         return files[position];
     }
 
-    public String getName(int position) {
+    String getName(int position) {
         return name.get(position);
     }
 
-    public String getDate_and_time(int position) {
+    String getDate_and_time(int position) {
         return date_and_time.get(position);
     }
 
-    public int getIconId(int position) {
+    int getIconId(int position) {
         String s = files[position].getAbsolutePath();
         if (files[position].isDirectory())
             return R.drawable.foldericon;
