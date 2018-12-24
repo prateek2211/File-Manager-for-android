@@ -8,6 +8,7 @@ import android.os.Bundle;
 import android.os.Environment;
 import android.os.StrictMode;
 import android.support.annotation.NonNull;
+import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.NavigationView;
 import android.support.v4.view.GravityCompat;
 import android.support.v4.widget.DrawerLayout;
@@ -25,19 +26,35 @@ import android.view.MenuItem;
 import android.view.View;
 
 import java.io.File;
+import java.io.IOException;
 
 public class MainActivity extends AppCompatActivity {
     static boolean isSelection;
+    static boolean isPasteMode;
     RecyclerView recyclerView;
     Toolbar toolbar;
     Context context;
     DrawerLayout drawerLayout;
     Data_Manager data_manager;
-    File path;
+    static File path;
     android.widget.SearchView searchView;
     MyRecyclerAdapter myRecyclerAdapter;
     int sortFlag;
     ActionMode actionMode;
+
+    public static File getCurrentPath() {
+        return path;
+    }
+
+//    @Override
+//    public boolean dispatchKeyEvent(KeyEvent event) {
+//        if (isPasteMode){
+//            if (event.getKeyCode()==KeyEvent.KEYCODE_BACK&&event.getAction()==KeyEvent.ACTION_UP)
+//                return true;
+//        }
+//
+//        return super.dispatchKeyEvent(event);
+//    }
 
     @Override
     public void onBackPressed() {
@@ -46,90 +63,12 @@ public class MainActivity extends AppCompatActivity {
             File parent = new File(path.getParent());
             path = parent;
             data_manager.setRecycler(parent, sortFlag);
+            if (isPasteMode)
+                actionMode.setTitle(path.getName());
             myRecyclerAdapter.notifyDataSetChanged();
         } catch (Exception e) {
             super.onBackPressed();
         }
-    }
-
-    @Override
-    protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        sortFlag = 0;
-        isSelection = false;
-        setContentView(R.layout.activity_main);
-        toolbar = findViewById(R.id.tool);
-        context = MainActivity.this;
-        setSupportActionBar(toolbar);
-        ActionBar actionBar = getSupportActionBar();
-        actionBar.setDisplayHomeAsUpEnabled(true);
-        actionBar.setHomeAsUpIndicator(R.drawable.ic_menu_black_24dp);
-        drawerLayout = findViewById(R.id.drawer);
-        NavigationView navigationView = findViewById(R.id.navigation);
-        navigationView.setNavigationItemSelectedListener(new NavigationView.OnNavigationItemSelectedListener() {
-            @Override
-            public boolean onNavigationItemSelected(@NonNull MenuItem menuItem) {
-                menuItem.setChecked(true);
-                drawerLayout.closeDrawers();
-                return true;
-            }
-        });
-        recyclerView = findViewById(R.id.letsRecycle);
-        recyclerView.setHasFixedSize(true);
-        RecyclerView.LayoutManager layoutManager = new LinearLayoutManager(this);
-        recyclerView.setLayoutManager(layoutManager);
-        recyclerView.addItemDecoration(new DividerItemDecoration(getApplicationContext(), DividerItemDecoration.VERTICAL));
-        data_manager = new Data_Manager();
-
-        path = Environment.getExternalStorageDirectory();
-        data_manager.setRecycler(path, sortFlag);
-        myRecyclerAdapter = new MyRecyclerAdapter(data_manager);
-        recyclerView.setAdapter(myRecyclerAdapter);
-        registerForContextMenu(recyclerView);
-        recyclerView.addOnItemTouchListener(new Listener_for_Recycler(getApplicationContext(), recyclerView, new Listener_for_Recycler.ClickListener() {
-            @Override
-            public void onClick(View view, int position) {
-                if (!isSelection) {
-                    path = data_manager.getFiles(position);
-                    sortFlag = 0;
-                    if (path.isDirectory()) {
-                        data_manager.setRecycler(path, sortFlag);
-                        myRecyclerAdapter.notifyDataSetChanged();
-                    } else if (path.toString().contains(".txt")) {
-                        Intent intent = new Intent();
-                        StrictMode.VmPolicy.Builder builder = new StrictMode.VmPolicy.Builder();
-                        StrictMode.setVmPolicy(builder.build());
-                        Uri uri = Uri.fromFile(path);
-                        intent.setAction(Intent.ACTION_VIEW);
-                        intent.setDataAndType(uri, "text/plain");
-                        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-                        context.startActivity(intent);
-                    }
-                } else {
-                    myRecyclerAdapter.toggleSelection(position);
-                    if (myRecyclerAdapter.getSelectedItemCount() > 1) {
-                        actionMode.getMenu().findItem(R.id.rename).setEnabled(false);
-                        actionMode.getMenu().findItem(R.id.properties).setEnabled(false);
-                    }
-                    actionMode.setTitle(myRecyclerAdapter.getSelectedItemCount() + " Selected");
-                    if (myRecyclerAdapter.getSelectedItemCount() == 0) {
-                        myRecyclerAdapter.clearSelection();
-                        isSelection = false;
-                        actionMode.finish();
-                    }
-                }
-            }
-
-            @Override
-            public void onLongClick(View view, int position) {
-                if (!isSelection) {
-                    actionMode = startActionMode(new ActionModeCallBack(myRecyclerAdapter, MainActivity.this, data_manager, path, sortFlag));
-                    myRecyclerAdapter.toggleSelection(position);
-                    actionMode.setTitle("1 Seleced");
-                    isSelection = true;
-                }
-            }
-        }));
     }
 
 //    private void onListItemSelect(int position) {
@@ -219,6 +158,108 @@ public class MainActivity extends AppCompatActivity {
     void refresh() {
         data_manager.setRecycler(path, sortFlag);
         myRecyclerAdapter.notifyDataSetChanged();
+    }
+
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        sortFlag = 0;
+        isSelection = false;
+        isPasteMode = false;
+        setContentView(R.layout.activity_main);
+        toolbar = findViewById(R.id.tool);
+        context = MainActivity.this;
+        setSupportActionBar(toolbar);
+        FloatingActionButton floatingActionButton = findViewById(R.id.fab);
+        floatingActionButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                File file = new File(path, "Yes.jpg");
+                try {
+                    file.createNewFile();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+        });
+        ActionBar actionBar = getSupportActionBar();
+        actionBar.setDisplayHomeAsUpEnabled(true);
+        actionBar.setHomeAsUpIndicator(R.drawable.ic_menu_black_24dp);
+        drawerLayout = findViewById(R.id.drawer);
+        NavigationView navigationView = findViewById(R.id.navigation);
+        navigationView.setNavigationItemSelectedListener(new NavigationView.OnNavigationItemSelectedListener() {
+            @Override
+            public boolean onNavigationItemSelected(@NonNull MenuItem menuItem) {
+                menuItem.setChecked(true);
+                drawerLayout.closeDrawers();
+                return true;
+            }
+        });
+        recyclerView = findViewById(R.id.letsRecycle);
+        recyclerView.setHasFixedSize(true);
+        RecyclerView.LayoutManager layoutManager = new LinearLayoutManager(this);
+        recyclerView.setLayoutManager(layoutManager);
+        recyclerView.addItemDecoration(new DividerItemDecoration(getApplicationContext(), DividerItemDecoration.VERTICAL));
+        data_manager = new Data_Manager();
+
+        path = Environment.getExternalStorageDirectory();
+        data_manager.setRecycler(path, sortFlag);
+        myRecyclerAdapter = new MyRecyclerAdapter(data_manager);
+        recyclerView.setAdapter(myRecyclerAdapter);
+        registerForContextMenu(recyclerView);
+        recyclerView.addOnItemTouchListener(new Listener_for_Recycler(getApplicationContext(), recyclerView, new Listener_for_Recycler.ClickListener() {
+            @Override
+            public void onClick(View view, int position) {
+
+                path = data_manager.getFiles(position);
+                if (!isSelection) {
+                    if (isPasteMode)
+                        actionMode.setTitle(path.getName());
+                    sortFlag = 0;
+                    if (path.isDirectory()) {
+                        data_manager.setRecycler(path, sortFlag);
+                        recyclerView.scrollToPosition(0);
+                        myRecyclerAdapter.notifyDataSetChanged();
+                    } else if (path.toString().contains(".txt")) {
+                        Intent intent = new Intent();
+                        StrictMode.VmPolicy.Builder builder = new StrictMode.VmPolicy.Builder();
+                        StrictMode.setVmPolicy(builder.build());
+                        Uri uri = Uri.fromFile(path);
+                        intent.setAction(Intent.ACTION_VIEW);
+                        intent.setDataAndType(uri, "text/plain");
+                        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                        context.startActivity(intent);
+                    }
+                } else {
+                    myRecyclerAdapter.toggleSelection(position);
+                    if (myRecyclerAdapter.getSelectedItemCount() > 1) {
+                        actionMode.getMenu().findItem(R.id.rename).setEnabled(false);
+                        actionMode.getMenu().findItem(R.id.properties).setEnabled(false);
+                    }
+                    if (myRecyclerAdapter.getSelectedItemCount() == 1) {
+                        actionMode.getMenu().findItem(R.id.rename).setEnabled(true);
+                        actionMode.getMenu().findItem(R.id.properties).setEnabled(true);
+                    }
+
+                    actionMode.setTitle(myRecyclerAdapter.getSelectedItemCount() + " Selected");
+                    if (myRecyclerAdapter.getSelectedItemCount() == 0) {
+                        myRecyclerAdapter.clearSelection();
+                        isSelection = false;
+                        actionMode.finish();
+                    }
+                }
+            }
+
+            @Override
+            public void onLongClick(View view, int position) {
+                if (!isSelection) {
+                    actionMode = startActionMode(new ActionModeCallBack(myRecyclerAdapter, MainActivity.this, data_manager, sortFlag));
+                    myRecyclerAdapter.toggleSelection(position);
+                    actionMode.setTitle("1 Seleced");
+                    isSelection = true;
+                }
+            }
+        }));
     }
 
 }
