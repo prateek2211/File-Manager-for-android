@@ -17,6 +17,9 @@ public class Data_Manager {
         date_and_time = new ArrayList<>();
         name = new ArrayList<>();
         files = path.listFiles();
+        if (files == null) {
+            files = new File[0];
+        }
         if (sortFlags == 1)
             sortByName(files);
         else if (sortFlags == 2)
