@@ -16,6 +16,9 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Toast;
 
+import com.sachan.prateek.filemanager.grid_utils.GridAdapter;
+import com.sachan.prateek.filemanager.list_utils.MyRecyclerAdapter;
+
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -28,6 +31,7 @@ public class ActionModeCallBack implements ActionMode.Callback {
     Button b1, b2;
     EditText editText;
     AlertDialog alertDialog1;
+    GridAdapter gadapter;
     private MyRecyclerAdapter adapter;
     private Context context;
     private Data_Manager data_manager;
@@ -35,6 +39,13 @@ public class ActionModeCallBack implements ActionMode.Callback {
 
     ActionModeCallBack(MyRecyclerAdapter adapter, Context context, Data_Manager data_manager, int sortFlags) {
         this.adapter = adapter;
+        this.context = context;
+        this.data_manager = data_manager;
+        this.sortFlags = sortFlags;
+    }
+
+    ActionModeCallBack(GridAdapter adapter, Context context, Data_Manager data_manager, int sortFlags) {
+        this.gadapter = adapter;
         this.context = context;
         this.data_manager = data_manager;
         this.sortFlags = sortFlags;
@@ -61,18 +72,29 @@ public class ActionModeCallBack implements ActionMode.Callback {
                 MainActivity.isPasteMode = true;
                 mode.getMenu().clear();
                 mode.setTitle(Environment.getExternalStorageDirectory().getPath());
-
-                if (MainActivity.sdCardmode) {
-                    for (int i = 0; i < adapter.getSelectedItemCount(); i++)
-                        source_doc.add(MainActivity.documentFile.findFile(adapter.getSelectedItemsFile().get(i).getName()));
+                if (MainActivity.gridView) {
+                    if (MainActivity.sdCardmode) {
+                        for (int i = 0; i < adapter.getSelectedItemCount(); i++)
+                            source_doc.add(MainActivity.documentFile.findFile(adapter.getSelectedItemsFile().get(i).getName()));
+                    }
+                    sources = gadapter.getSelectedItemsFile();
+                    gadapter.clearSelection();
+                } else {
+                    if (MainActivity.sdCardmode) {
+                        for (int i = 0; i < adapter.getSelectedItemCount(); i++)
+                            source_doc.add(MainActivity.documentFile.findFile(adapter.getSelectedItemsFile().get(i).getName()));
+                    }
+                    sources = adapter.getSelectedItemsFile();
+                    adapter.clearSelection();
                 }
-                sources = adapter.getSelectedItemsFile();
-                adapter.clearSelection();
                 MainActivity.isSelection = false;
                 if (!MainActivity.sdCardmode) {
                     MainActivity.path = Environment.getExternalStorageDirectory();
                     data_manager.setRecycler(MainActivity.getCurrentPath(), sortFlags);
-                    adapter.notifyDataSetChanged();
+                    if (MainActivity.gridView)
+                        gadapter.notifyDataSetChanged();
+                    else
+                        adapter.notifyDataSetChanged();
                 } else {
                     MainActivity.path = MainActivity.externalSD_root;
                     MainActivity.documentFile = MainActivity.permadDocumentFile;
@@ -83,18 +105,29 @@ public class ActionModeCallBack implements ActionMode.Callback {
                 MainActivity.isPasteMode = true;
                 mode.getMenu().clear();
                 mode.setTitle(Environment.getExternalStorageDirectory().getPath());
-
-                if (MainActivity.sdCardmode) {
-                    for (int i = 0; i < adapter.getSelectedItemCount(); i++)
-                        source_doc.add(MainActivity.documentFile.findFile(adapter.getSelectedItemsFile().get(i).getName()));
+                if (MainActivity.gridView) {
+                    if (MainActivity.sdCardmode) {
+                        for (int i = 0; i < adapter.getSelectedItemCount(); i++)
+                            source_doc.add(MainActivity.documentFile.findFile(adapter.getSelectedItemsFile().get(i).getName()));
+                    }
+                    sources = gadapter.getSelectedItemsFile();
+                    gadapter.clearSelection();
+                } else {
+                    if (MainActivity.sdCardmode) {
+                        for (int i = 0; i < adapter.getSelectedItemCount(); i++)
+                            source_doc.add(MainActivity.documentFile.findFile(adapter.getSelectedItemsFile().get(i).getName()));
+                    }
+                    sources = adapter.getSelectedItemsFile();
+                    adapter.clearSelection();
                 }
-                sources = adapter.getSelectedItemsFile();
-                adapter.clearSelection();
                 MainActivity.isSelection = false;
                 if (!MainActivity.sdCardmode) {
                     MainActivity.path = Environment.getExternalStorageDirectory();
                     data_manager.setRecycler(MainActivity.getCurrentPath(), sortFlags);
-                    adapter.notifyDataSetChanged();
+                    if (MainActivity.gridView)
+                        gadapter.notifyDataSetChanged();
+                    else
+                        adapter.notifyDataSetChanged();
                 } else {
                     MainActivity.path = MainActivity.externalSD_root;
                     MainActivity.documentFile = MainActivity.permadDocumentFile;
@@ -103,7 +136,12 @@ public class ActionModeCallBack implements ActionMode.Callback {
                 break;
             case R.id.delete:
                 AlertDialog.Builder builder = new AlertDialog.Builder(context);
-                builder.setMessage("Are you sure that you want to delete these " + adapter.getSelectedItemCount() + " items? You can`t recover these items later")
+                int temp = 0;
+                if (MainActivity.gridView)
+                    temp = gadapter.getSelectedItemCount();
+                else
+                    adapter.getSelectedItemCount();
+                builder.setMessage("Are you sure that you want to delete these " + temp + " items? You can`t recover these items later")
                         .setTitle("Warning")
                         .setCancelable(false)
                         .setNegativeButton("No", new DialogInterface.OnClickListener() {
@@ -115,7 +153,11 @@ public class ActionModeCallBack implements ActionMode.Callback {
                         .setPositiveButton("Yes", new DialogInterface.OnClickListener() {
                             @Override
                             public void onClick(DialogInterface dialog, int which) {
-                                List<File> files = adapter.getSelectedItemsFile();
+                                List<File> files;
+                                if (MainActivity.gridView)
+                                    files = gadapter.getSelectedItemsFile();
+                                else
+                                    files = adapter.getSelectedItemsFile();
                                 for (int i = 0; i < files.size(); i++) {
                                     if (!MainActivity.sdCardmode) {
                                         while (files.get(i).exists()) {
@@ -133,7 +175,10 @@ public class ActionModeCallBack implements ActionMode.Callback {
                                     files.remove(i);
                                 }
                                 data_manager.setRecycler(MainActivity.getCurrentPath(), sortFlags);
-                                adapter.notifyDataSetChanged();
+                                if (MainActivity.gridView)
+                                    gadapter.notifyDataSetChanged();
+                                else
+                                    adapter.notifyDataSetChanged();
                                 mode.finish();
                             }
                         });
@@ -146,7 +191,10 @@ public class ActionModeCallBack implements ActionMode.Callback {
                 alertDialog1 = bobTheBuilder.create();
                 alertDialog1.show();
                 editText = alertDialog1.findViewById(R.id.renameText);
-                editText.setText(adapter.getSelectedItemsFile().get(0).getName());
+                if (MainActivity.gridView)
+                    editText.setText(gadapter.getSelectedItemsFile().get(0).getName());
+                else
+                    editText.setText(adapter.getSelectedItemsFile().get(0).getName());
                 editText.selectAll();
                 b1 = alertDialog1.findViewById(R.id.cancel);
                 b2 = alertDialog1.findViewById(R.id.ok);
@@ -155,19 +203,32 @@ public class ActionModeCallBack implements ActionMode.Callback {
                     public void onClick(View v) {
                         String newName = editText.getText().toString();
                         if (!MainActivity.sdCardmode) {
-                            boolean jobDone = adapter.getSelectedItemsFile().get(0).renameTo(new File(MainActivity.getCurrentPath().getPath() + "/" + newName));
-                            if (!jobDone)
-                                Toast.makeText(context, "Invalid FileName", Toast.LENGTH_SHORT).show();
+                            if (MainActivity.gridView) {
+                                boolean jobDone = gadapter.getSelectedItemsFile().get(0).renameTo(new File(MainActivity.getCurrentPath().getPath() + "/" + newName));
+                                if (!jobDone)
+                                    Toast.makeText(context, "Invalid FileName", Toast.LENGTH_SHORT).show();
+                            } else {
+                                boolean jobDone = adapter.getSelectedItemsFile().get(0).renameTo(new File(MainActivity.getCurrentPath().getPath() + "/" + newName));
+                                if (!jobDone)
+                                    Toast.makeText(context, "Invalid FileName", Toast.LENGTH_SHORT).show();
+                            }
+                        } else {
+                            boolean x = MainActivity.documentFile.findFile(adapter.getSelectedItemsFile().get(0).getName()).renameTo(newName);
+                            if (!x)
+                                Toast.makeText(context, "Sorry unable to process the request", Toast.LENGTH_LONG).show();
                         }
-                        boolean x = MainActivity.documentFile.findFile(adapter.getSelectedItemsFile().get(0).getName()).renameTo(newName);
-                        if (!x)
-                            Toast.makeText(context, "Sorry unable to process the request", Toast.LENGTH_LONG).show();
                         alertDialog1.cancel();
-                        adapter.clearSelection();
+                        if (MainActivity.gridView)
+                            gadapter.clearSelection();
+                        else
+                            adapter.clearSelection();
                         MainActivity.isPasteMode = false;
                         MainActivity.isSelection = false;
                         data_manager.setRecycler(MainActivity.getCurrentPath(), sortFlags);
-                        adapter.notifyDataSetChanged();
+                        if (MainActivity.gridView)
+                            gadapter.notifyDataSetChanged();
+                        else
+                            adapter.notifyDataSetChanged();
                         mode.finish();
 
                     }
@@ -217,15 +278,18 @@ public class ActionModeCallBack implements ActionMode.Callback {
                                         Toast.makeText(context, "Sorry, unable to delete the file, don`t have permission", Toast.LENGTH_SHORT).show();
                                     }
                                 }
-                            } else {
-                                source_doc.get(i).delete();
                             }
+                        } else {
+                            source_doc.get(i).delete();
                         }
                     }
                 }
                 mode.finish();
                 data_manager.setRecycler(MainActivity.getCurrentPath(), sortFlags);
-                adapter.notifyDataSetChanged();
+                if (MainActivity.gridView)
+                    gadapter.notifyDataSetChanged();
+                else
+                    adapter.notifyDataSetChanged();
                 cut = false;
                 break;
         }
@@ -234,7 +298,10 @@ public class ActionModeCallBack implements ActionMode.Callback {
 
     @Override
     public void onDestroyActionMode(ActionMode mode) {
-        adapter.clearSelection();
+        if (MainActivity.gridView)
+            gadapter.clearSelection();
+        else
+            adapter.clearSelection();
         MainActivity.isPasteMode = false;
         MainActivity.isSelection = false;
         cut = false;
