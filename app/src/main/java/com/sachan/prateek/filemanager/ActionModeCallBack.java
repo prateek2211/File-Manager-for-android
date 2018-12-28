@@ -1,7 +1,6 @@
 package com.sachan.prateek.filemanager;
 
 import android.app.AlertDialog;
-import android.app.Dialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.os.Build;
@@ -187,7 +186,7 @@ public class ActionModeCallBack implements ActionMode.Callback {
                 break;
             case R.id.rename:
                 AlertDialog.Builder bobTheBuilder = new AlertDialog.Builder(context);
-                bobTheBuilder.setView(R.layout.rename_dialog).setTitle("Rename");
+                bobTheBuilder.setView(R.layout.rename_dialog).setTitle("Rename").setCancelable(false);
                 alertDialog1 = bobTheBuilder.create();
                 alertDialog1.show();
                 editText = alertDialog1.findViewById(R.id.renameText);
@@ -241,9 +240,20 @@ public class ActionModeCallBack implements ActionMode.Callback {
                 });
                 break;
             case R.id.properties:
-                Dialog dialog = new Dialog(context);
-                dialog.setContentView(R.layout.properties_dialog);
+                AlertDialog.Builder propBuilder = new AlertDialog.Builder(context);
+                propBuilder.setView(R.layout.properties_dialog);
+                propBuilder.setTitle("Properties").setCancelable(false).setPositiveButton("OK", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        dialog.cancel();
+                    }
+                });
+                AlertDialog dialog = propBuilder.create();
                 dialog.show();
+                if (MainActivity.gridView)
+                    new File_Properties(dialog).setProperties(gadapter.getSelectedItemsFile().get(0));
+                else
+                    new File_Properties(dialog).setProperties(adapter.getSelectedItemsFile().get(0));
                 break;
             case R.id.paste:
                 for (int i = 0; i < sources.size(); i++) {

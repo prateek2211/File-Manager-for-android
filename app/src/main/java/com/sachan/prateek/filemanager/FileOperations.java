@@ -11,7 +11,10 @@ public class FileOperations {
     File file;
 
     public static void pasteDoc(DocumentFile source, DocumentFile destination_Path) {
+        if (source.isDirectory()) {
+        } else {
 
+        }
     }
 
     static void delete(File file) throws Exception {
@@ -54,6 +57,5 @@ public class FileOperations {
         for (int i = 0; i < contents.length; i++) {
             copyFile(contents[i], output, contents[i].getName());
         }
-
     }
 }

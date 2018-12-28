@@ -1,10 +1,12 @@
-package com.sachan.prateek.filemanager;
+package com.sachan.prateek.filemanager.list_utils;
 
 import android.support.annotation.NonNull;
 import android.support.v7.widget.RecyclerView;
 import android.view.View;
 import android.widget.ImageView;
 import android.widget.TextView;
+
+import com.sachan.prateek.filemanager.R;
 
 class MyViewHolder extends RecyclerView.ViewHolder {
     ImageView imageView;

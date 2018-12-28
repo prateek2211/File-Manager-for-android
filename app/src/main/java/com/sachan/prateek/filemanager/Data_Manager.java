@@ -1,5 +1,7 @@
 package com.sachan.prateek.filemanager;
 
+import android.annotation.SuppressLint;
+
 import java.io.File;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -9,8 +11,8 @@ import java.util.Comparator;
 import java.util.List;
 
 public class Data_Manager {
-    List<String> name;
-    File[] files;
+    public List<String> name;
+    private File[] files;
     private List<String> date_and_time;
 
     void setRecycler(File path, int sortFlags) {
@@ -34,24 +36,36 @@ public class Data_Manager {
             sortBySizeReverse(files);
         for (File file : files) {
             name.add(file.getName());
-            SimpleDateFormat dateFormat = new SimpleDateFormat("dd/MM/yyyy HH:mm:ss");
+            @SuppressLint("SimpleDateFormat") SimpleDateFormat dateFormat = new SimpleDateFormat("dd/MM/yyyy HH:mm:ss");
             date_and_time.add(dateFormat.format(file.lastModified()));
         }
     }
 
-    File getFiles(int position) {
+    void setSearchResults(List<File> list) {
+        date_and_time = new ArrayList<>();
+        name = new ArrayList<>();
+        files = new File[list.size()];
+        for (int i = 0; i < list.size(); i++) {
+            files[i] = list.get(i);
+            name.add(files[i].getName());
+            @SuppressLint("SimpleDateFormat") SimpleDateFormat dateFormat = new SimpleDateFormat("dd/MM/yyyy HH:mm:ss");
+            date_and_time.add(dateFormat.format(files[i].lastModified()));
+        }
+    }
+
+    public File getFiles(int position) {
         return files[position];
     }
 
-    String getName(int position) {
+    public String getName(int position) {
         return name.get(position);
     }
 
-    String getDate_and_time(int position) {
+    public String getDate_and_time(int position) {
         return date_and_time.get(position);
     }
 
-    int getIconId(int position) {
+    public int getIconId(int position) {
         String s = files[position].getAbsolutePath();
         if (files[position].isDirectory())
             return R.drawable.foldericon;
@@ -82,16 +96,16 @@ public class Data_Manager {
 //            files[i]=newDataManager.files[i];
 //        }
 //    }
-    void sortByName(File[] fileCmp) {
+    public void sortByName(File[] fileCmp) {
         Arrays.sort(fileCmp, new Comparator<File>() {
             @Override
             public int compare(File o1, File o2) {
-                return o1.getName().compareTo(o2.getName());
+                return o1.getName().toLowerCase().compareTo(o2.getName().toLowerCase());
             }
         });
     }
 
-    void sortByNameReverse(File[] fileCmp) {
+    public void sortByNameReverse(File[] fileCmp) {
         Arrays.sort(fileCmp, Collections.<File>reverseOrder(new Comparator<File>() {
             @Override
             public int compare(File o1, File o2) {
@@ -100,7 +114,7 @@ public class Data_Manager {
         }));
     }
 
-    void sortByDate(File[] fileCmp) {
+    public void sortByDate(File[] fileCmp) {
         Arrays.sort(fileCmp, new Comparator<File>() {
             @Override
             public int compare(File o1, File o2) {
