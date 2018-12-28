@@ -32,7 +32,10 @@ public class GridAdapter extends RecyclerView.Adapter<GridViewHolder> {
 
     @Override
     public void onBindViewHolder(@NonNull GridViewHolder gridViewHolder, int i) {
-        gridViewHolder.textView.setText(dataManager.getName(i));
+        if (dataManager.getName(i).length() > 12)
+            gridViewHolder.textView.setText(dataManager.getName(i).substring(0, 11));
+        else
+            gridViewHolder.textView.setText(dataManager.getName(i));
         gridViewHolder.imageView.setImageResource(dataManager.getIconId(i));
         gridViewHolder.itemView.setActivated(selectionState.get(i, false));
     }

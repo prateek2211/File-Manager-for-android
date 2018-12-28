@@ -246,6 +246,14 @@ public class ActionModeCallBack implements ActionMode.Callback {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
                         dialog.cancel();
+                        if (MainActivity.gridView) {
+                            gadapter.clearSelection();
+                            gadapter.notifyDataSetChanged();
+                        } else {
+                            gadapter.clearSelection();
+                            gadapter.notifyDataSetChanged();
+                        }
+                        mode.finish();
                     }
                 });
                 AlertDialog dialog = propBuilder.create();

@@ -7,7 +7,6 @@
     <string name="internal_storage">Internal Storage</string>
     <string name="sd_card">SD Card</string>
     <string name="file_icon">File icon</string>
-    <string name="my_string">Hello World Woo Woo I Have written a txt file in Document public external storage directory</string>
     <string name="cut">Cut</string>
     <string name="copy">Copy</string>
     <string name="delete">Delete</string>
@@ -22,5 +21,10 @@
     <string name="title_activity_main2">Main2Activity</string>
     <string name="cancel">Cancel</string>
     <string name="ok">OK</string>
-    <string name="plese_enter_file_name">Plese Enter File Name</string>
+    <string name="plese_enter_file_name">Please Enter File Name</string>
+    <string name="size">Size</string>
+    <string name="type">Type</string>
+    <string name="path">Path</string>
+    <string name="last_modified">Last Modified</string>
+    <string name="writable">Writable</string>
 </resources>

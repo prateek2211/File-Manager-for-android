@@ -1,9 +1,11 @@
 package com.sachan.prateek.filemanager;
 
+import android.Manifest;
 import android.app.AlertDialog;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.content.pm.PackageManager;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
@@ -12,6 +14,8 @@ import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.NavigationView;
+import android.support.v4.app.ActivityCompat;
+import android.support.v4.content.ContextCompat;
 import android.support.v4.provider.DocumentFile;
 import android.support.v4.view.GravityCompat;
 import android.support.v4.widget.DrawerLayout;
@@ -204,9 +208,10 @@ public class MainActivity extends AppCompatActivity {
 //        Point size = new Point();
 //        display.getSize(size);
 //        int width = size.x
-
-
         super.onCreate(savedInstanceState);
+        if (ContextCompat.checkSelfPermission(MainActivity.this, Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
+            ActivityCompat.requestPermissions(MainActivity.this, new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE}, 420);
+        }
         setExternalSD_root();
         if (isExternalSD_available) {
             SharedPreferences prefs = getSharedPreferences(prefsName, 0);
@@ -235,6 +240,7 @@ public class MainActivity extends AppCompatActivity {
                 final AlertDialog alertDialog1 = bobTheBuilder.create();
                 alertDialog1.show();
                 editText = alertDialog1.findViewById(R.id.renameText);
+                editText.setHint("Please Enter Folder Name");
                 Button ok = alertDialog1.findViewById(R.id.ok);
                 Button cancel = alertDialog1.findViewById(R.id.cancel);
                 ok.setOnClickListener(new View.OnClickListener() {

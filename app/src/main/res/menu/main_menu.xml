@@ -27,7 +27,7 @@
         android:title="@string/storage_statistics" />
     <item
         android:id="@+id/view"
-        android:icon="@drawable/ic_grid_on_black_24dp"
+        android:icon="@drawable/grid"
         android:title="@string/view"
         app:showAsAction="always" />
     <item
