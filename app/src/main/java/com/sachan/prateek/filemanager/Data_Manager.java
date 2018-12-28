@@ -85,17 +85,6 @@ public class Data_Manager {
         return R.drawable.my;
     }
 
-    //    void filterContents(Data_Manager newDataManager){
-//        date_and_time=new ArrayList<>();
-//        name=new ArrayList<>();
-//        files=newDataManager.files;
-//        for (int i=0;i<newDataManager.name.size();i++){
-//            files[i]=new File("");
-//            name.add(newDataManager.getName(i));
-//            date_and_time.add(newDataManager.getDate_and_time(i));
-//            files[i]=newDataManager.files[i];
-//        }
-//    }
     public void sortByName(File[] fileCmp) {
         Arrays.sort(fileCmp, new Comparator<File>() {
             @Override

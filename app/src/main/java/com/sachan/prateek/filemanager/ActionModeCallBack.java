@@ -139,7 +139,7 @@ public class ActionModeCallBack implements ActionMode.Callback {
                 if (MainActivity.gridView)
                     temp = gadapter.getSelectedItemCount();
                 else
-                    adapter.getSelectedItemCount();
+                    temp = adapter.getSelectedItemCount();
                 builder.setMessage("Are you sure that you want to delete these " + temp + " items? You can`t recover these items later")
                         .setTitle("Warning")
                         .setCancelable(false)
@@ -169,9 +169,7 @@ public class ActionModeCallBack implements ActionMode.Callback {
                                         }
                                     } else {
                                         MainActivity.documentFile.findFile(files.get(0).getName()).delete();
-
                                     }
-                                    files.remove(i);
                                 }
                                 data_manager.setRecycler(MainActivity.getCurrentPath(), sortFlags);
                                 if (MainActivity.gridView)

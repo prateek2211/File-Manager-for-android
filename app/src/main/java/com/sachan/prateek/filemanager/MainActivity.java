@@ -315,8 +315,8 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onClick(View view, int position) {
 
-                path = data_manager.getFiles(position);
                 if (!isSelection) {
+                    path = data_manager.getFiles(position);
                     if (isPasteMode)
                         actionMode.setTitle(path.getName());
                     if (path.isDirectory()) {
