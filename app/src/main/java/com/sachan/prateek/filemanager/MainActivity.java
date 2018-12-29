@@ -2,6 +2,7 @@ package com.sachan.prateek.filemanager;
 
 import android.Manifest;
 import android.app.AlertDialog;
+import android.content.ActivityNotFoundException;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
@@ -32,14 +33,20 @@ import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.ListView;
 import android.widget.Toast;
 
 import com.sachan.prateek.filemanager.grid_utils.GridAdapter;
 import com.sachan.prateek.filemanager.list_utils.MyRecyclerAdapter;
 
 import java.io.File;
+import java.io.IOException;
+import java.net.URL;
+import java.net.URLConnection;
 
 public class MainActivity extends AppCompatActivity {
     private static final String prefsName = "mysharedpref";
@@ -328,15 +335,28 @@ public class MainActivity extends AppCompatActivity {
                             adapter.notifyDataSetChanged();
                         else
                             myRecyclerAdapter.notifyDataSetChanged();
-                    } else if (path.toString().contains(".txt")) {
-                        Intent intent = new Intent();
-                        StrictMode.VmPolicy.Builder builder = new StrictMode.VmPolicy.Builder();
-                        StrictMode.setVmPolicy(builder.build());
-                        Uri uri = Uri.fromFile(path);
-                        intent.setAction(Intent.ACTION_VIEW);
-                        intent.setDataAndType(uri, "text/plain");
-                        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-                        context.startActivity(intent);
+                    } else {
+                        String fileType = "";
+                        URL url = null;
+                        try {
+                            url = new URL("file://" + path.getPath());
+                            URLConnection connection = url.openConnection();
+                            fileType = connection.getContentType();
+                            Intent intent = new Intent();
+                            StrictMode.VmPolicy.Builder builder = new StrictMode.VmPolicy.Builder();
+                            StrictMode.setVmPolicy(builder.build());
+                            Uri uri = Uri.fromFile(path);
+                            intent.setAction(Intent.ACTION_VIEW);
+                            intent.setDataAndType(uri, fileType);
+                            intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                            try {
+                                context.startActivity(intent);
+                            } catch (ActivityNotFoundException e) {
+                                createOpenAs(path);
+                            }
+                        } catch (IOException e) {
+                            Toast.makeText(context, "Couldn`t open the specified file", Toast.LENGTH_SHORT).show();
+                        }
                     }
                 } else {
                     if (gridView) {
@@ -446,6 +466,46 @@ public class MainActivity extends AppCompatActivity {
                 Toast.makeText(context, "Something went unexpected", Toast.LENGTH_LONG).show();
             }
         }
+    }
 
+    void createOpenAs(File file) {
+        AlertDialog.Builder bobTheBuilder = new AlertDialog.Builder(context);
+        bobTheBuilder.setView(R.layout.open_as).setTitle("Open As");
+        final AlertDialog alertDialog1 = bobTheBuilder.create();
+        alertDialog1.show();
+        ListView listView = alertDialog1.findViewById(R.id.list);
+        listView.setAdapter(new ArrayAdapter<String>(context, android.R.layout.simple_list_item_1, new String[]{
+                "Text", "Audio", "Video", "Image"}));
+        listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                Intent intent = new Intent(Intent.ACTION_VIEW);
+                Uri uri = Uri.fromFile(path);
+                switch (position) {
+                    case 0:
+                        intent.setDataAndType(uri, "text/plain");
+                        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                        break;
+                    case 1:
+                        intent.setDataAndType(uri, "audio/wav");
+                        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                        break;
+                    case 2:
+                        intent.setDataAndType(uri, "video/*");
+                        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                        break;
+                    case 3:
+                        intent.setDataAndType(uri, "image/jpeg");
+                        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                        break;
+                }
+                try {
+                    startActivity(intent);
+                } catch (ActivityNotFoundException e) {
+                    Toast.makeText(context, "No App found to open requested file type", Toast.LENGTH_SHORT).show();
+                }
+                alertDialog1.cancel();
+            }
+        });
     }
 }

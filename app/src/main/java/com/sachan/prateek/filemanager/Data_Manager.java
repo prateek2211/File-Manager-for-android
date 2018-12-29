@@ -3,6 +3,9 @@ package com.sachan.prateek.filemanager;
 import android.annotation.SuppressLint;
 
 import java.io.File;
+import java.io.IOException;
+import java.net.URL;
+import java.net.URLConnection;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -67,14 +70,25 @@ public class Data_Manager {
 
     public int getIconId(int position) {
         String s = files[position].getAbsolutePath();
+        String fileType = "";
+        URL url = null;
+        try {
+            url = new URL("file://" + files[position].getPath());
+            URLConnection connection = url.openConnection();
+            fileType = connection.getContentType();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
         if (files[position].isDirectory())
             return R.drawable.foldericon;
         else if (s.contains(".apk"))
             return R.drawable.apk;
         else if (s.contains(".docx") || s.contains(".txt"))
             return R.drawable.docx;
-        else if (s.contains(".mp4") || s.contains(".mp3"))
+        else if (fileType.contains("audio/"))
             return R.drawable.mp_three;
+        else if (fileType.contains("image/"))
+            return R.drawable.image;
         else if (s.contains(".pdf"))
             return R.drawable.pdf;
         else if (s.contains(".ppt"))

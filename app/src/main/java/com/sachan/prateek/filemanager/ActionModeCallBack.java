@@ -168,7 +168,10 @@ public class ActionModeCallBack implements ActionMode.Callback {
                                             }
                                         }
                                     } else {
-                                        MainActivity.documentFile.findFile(files.get(0).getName()).delete();
+                                        if (MainActivity.searchMode)
+                                            Toast.makeText(context, "Can`t delete file on search mode", Toast.LENGTH_SHORT).show();
+                                        else
+                                            MainActivity.documentFile.findFile(files.get(0).getName()).delete();
                                     }
                                 }
                                 data_manager.setRecycler(MainActivity.getCurrentPath(), sortFlags);
@@ -248,8 +251,8 @@ public class ActionModeCallBack implements ActionMode.Callback {
                             gadapter.clearSelection();
                             gadapter.notifyDataSetChanged();
                         } else {
-                            gadapter.clearSelection();
-                            gadapter.notifyDataSetChanged();
+                            adapter.clearSelection();
+                            adapter.notifyDataSetChanged();
                         }
                         mode.finish();
                     }
