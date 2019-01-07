@@ -13,7 +13,6 @@ import java.io.OutputStream;
 
 public class FileOperations {
     File file;
-    long size_copied;
 
     static void delete(File file) throws Exception {
         if (file.isFile()) {
@@ -95,30 +94,6 @@ public class FileOperations {
             }
         }
     }
-
-//            void copyFile (File source, File destination, String name) throws IOException {
-//        if (source.isDirectory()) {
-//            copyDirectoryRecursively(source, destination, name);
-//        } else {
-//            FileInputStream fileInputStream = new FileInputStream(source);
-//            File output = new File(destination, name);
-//            FileOutputStream fileOutputStream = new FileOutputStream(output);
-//            byte[] arr = new byte[fileInputStream.available()];
-//            while (fileInputStream.read(arr) != -1) {
-//                fileOutputStream.write(arr);
-//            }
-//        }
-//    }
-//
-//    private void copyDirectoryRecursively(File source, File destination, String name) throws IOException {
-//        File output = new File(destination, name);
-//        output.mkdirs();
-//        File[] contents = source.listFiles();
-//        for (int i = 0; i < contents.length; i++) {
-//            File content = contents[i];
-//            copyFile(content, output, content.getName());
-//        }
-//    }
 
     public boolean copy(File copy, File directory, Context con) {
         FileInputStream inStream = null;

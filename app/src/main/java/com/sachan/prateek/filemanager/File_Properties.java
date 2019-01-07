@@ -15,11 +15,11 @@ public class File_Properties {
     TextView writable;
     AlertDialog alertDialog;
 
-    public File_Properties(AlertDialog alertDialog) {
+    File_Properties(AlertDialog alertDialog) {
         this.alertDialog = alertDialog;
     }
 
-    public static long getFileFolderSize(File dir) {
+    private static long getFileFolderSize(File dir) {
         long size = 0;
         if (dir.isDirectory()) {
             for (File file : dir.listFiles()) {
