@@ -21,4 +21,9 @@
         android:id="@+id/properties"
         android:title="@string/properties"
         app:showAsAction="never" />
+    <item
+        android:id="@+id/share"
+        android:icon="@drawable/ic_menu_share"
+        android:title="@string/share"
+        app:showAsAction="ifRoom" />
 </menu>

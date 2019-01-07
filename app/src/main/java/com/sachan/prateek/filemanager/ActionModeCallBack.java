@@ -1,11 +1,21 @@
 package com.sachan.prateek.filemanager;
 
 import android.app.AlertDialog;
+import android.content.ContentValues;
 import android.content.Context;
 import android.content.DialogInterface;
+import android.content.Intent;
+import android.graphics.BitmapFactory;
+import android.media.MediaScannerConnection;
+import android.net.Uri;
 import android.os.Build;
 import android.os.Environment;
+import android.os.Handler;
+import android.provider.MediaStore;
 import android.support.annotation.RequiresApi;
+import android.support.v4.app.NotificationCompat;
+import android.support.v4.app.NotificationManagerCompat;
+import android.support.v4.content.FileProvider;
 import android.support.v4.provider.DocumentFile;
 import android.view.ActionMode;
 import android.view.Menu;
@@ -23,6 +33,9 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
+import static android.support.v4.app.NotificationCompat.Builder;
+import static android.support.v4.app.NotificationCompat.PRIORITY_DEFAULT;
+
 public class ActionModeCallBack implements ActionMode.Callback {
     List<File> sources;
     List<DocumentFile> source_doc;
@@ -31,6 +44,8 @@ public class ActionModeCallBack implements ActionMode.Callback {
     EditText editText;
     AlertDialog alertDialog1;
     GridAdapter gadapter;
+    Handler handler;
+    FileOperations fileOperations;
     private MyRecyclerAdapter adapter;
     private Context context;
     private Data_Manager data_manager;
@@ -41,6 +56,8 @@ public class ActionModeCallBack implements ActionMode.Callback {
         this.context = context;
         this.data_manager = data_manager;
         this.sortFlags = sortFlags;
+        handler = new Handler(context.getMainLooper());
+        fileOperations = new FileOperations();
     }
 
     ActionModeCallBack(GridAdapter adapter, Context context, Data_Manager data_manager, int sortFlags) {
@@ -48,6 +65,23 @@ public class ActionModeCallBack implements ActionMode.Callback {
         this.context = context;
         this.data_manager = data_manager;
         this.sortFlags = sortFlags;
+        fileOperations = new FileOperations();
+        handler = new Handler(context.getMainLooper());
+    }
+
+    static DocumentFile getDocumentFile(File file) {
+        String relativePath = file.getPath().substring(MainActivity.externalSD_root.getPath().length() + 1);
+        String[] parts = relativePath.split("/");
+        DocumentFile document = MainActivity.permadDocumentFile;
+
+        for (int i = 0; i < parts.length; i++) {
+            String part = parts[i];
+            DocumentFile nextDocument = document.findFile(part);
+            if (nextDocument != null) {
+                document = nextDocument;
+            }
+        }
+        return document;
     }
 
     @Override
@@ -73,15 +107,15 @@ public class ActionModeCallBack implements ActionMode.Callback {
                 mode.setTitle(Environment.getExternalStorageDirectory().getPath());
                 if (MainActivity.gridView) {
                     if (MainActivity.sdCardmode) {
-                        for (int i = 0; i < adapter.getSelectedItemCount(); i++)
-                            source_doc.add(MainActivity.documentFile.findFile(adapter.getSelectedItemsFile().get(i).getName()));
+//                        for (int i = 0; i < adapter.getSelectedItemCount(); i++)
+//                            source_doc.add(MainActivity.documentFile.findFile(adapter.getSelectedItemsFile().get(i).getName()));
                     }
                     sources = gadapter.getSelectedItemsFile();
                     gadapter.clearSelection();
                 } else {
                     if (MainActivity.sdCardmode) {
-                        for (int i = 0; i < adapter.getSelectedItemCount(); i++)
-                            source_doc.add(MainActivity.documentFile.findFile(adapter.getSelectedItemsFile().get(i).getName()));
+//                        for (int i = 0; i < adapter.getSelectedItemCount(); i++)
+//                            source_doc.add(MainActivity.documentFile.findFile(adapter.getSelectedItemsFile().get(i).getName()));
                     }
                     sources = adapter.getSelectedItemsFile();
                     adapter.clearSelection();
@@ -96,7 +130,7 @@ public class ActionModeCallBack implements ActionMode.Callback {
                         adapter.notifyDataSetChanged();
                 } else {
                     MainActivity.path = MainActivity.externalSD_root;
-                    MainActivity.documentFile = MainActivity.permadDocumentFile;
+//                    MainActivity.documentFile = MainActivity.permadDocumentFile;
                 }
                 mode.getMenuInflater().inflate(R.menu.paste_menu, mode.getMenu());
                 break;
@@ -106,15 +140,15 @@ public class ActionModeCallBack implements ActionMode.Callback {
                 mode.setTitle(Environment.getExternalStorageDirectory().getPath());
                 if (MainActivity.gridView) {
                     if (MainActivity.sdCardmode) {
-                        for (int i = 0; i < adapter.getSelectedItemCount(); i++)
-                            source_doc.add(MainActivity.documentFile.findFile(adapter.getSelectedItemsFile().get(i).getName()));
+//                        for (int i = 0; i < adapter.getSelectedItemCount(); i++)
+//                            source_doc.add(MainActivity.documentFile.findFile(adapter.getSelectedItemsFile().get(i).getName()));
                     }
                     sources = gadapter.getSelectedItemsFile();
                     gadapter.clearSelection();
                 } else {
                     if (MainActivity.sdCardmode) {
-                        for (int i = 0; i < adapter.getSelectedItemCount(); i++)
-                            source_doc.add(MainActivity.documentFile.findFile(adapter.getSelectedItemsFile().get(i).getName()));
+//                        for (int i = 0; i < adapter.getSelectedItemCount(); i++)
+//                            source_doc.add(MainActivity.documentFile.findFile(adapter.getSelectedItemsFile().get(i).getName()));
                     }
                     sources = adapter.getSelectedItemsFile();
                     adapter.clearSelection();
@@ -129,6 +163,11 @@ public class ActionModeCallBack implements ActionMode.Callback {
                         adapter.notifyDataSetChanged();
                 } else {
                     MainActivity.path = MainActivity.externalSD_root;
+                    data_manager.setRecycler(MainActivity.getCurrentPath(), sortFlags);
+                    if (MainActivity.gridView)
+                        gadapter.notifyDataSetChanged();
+                    else
+                        adapter.notifyDataSetChanged();
                     MainActivity.documentFile = MainActivity.permadDocumentFile;
                 }
                 mode.getMenuInflater().inflate(R.menu.paste_menu, mode.getMenu());
@@ -158,7 +197,7 @@ public class ActionModeCallBack implements ActionMode.Callback {
                                 else
                                     files = adapter.getSelectedItemsFile();
                                 for (int i = 0; i < files.size(); i++) {
-                                    if (!MainActivity.sdCardmode) {
+                                    if (!MainActivity.sdCardmode && !MainActivity.collections) {
                                         while (files.get(i).exists()) {
                                             try {
                                                 FileOperations.delete(files.get(i));
@@ -167,14 +206,36 @@ public class ActionModeCallBack implements ActionMode.Callback {
                                                 break;
                                             }
                                         }
+                                    } else if (MainActivity.collections) {
+                                        try {
+                                            FileOperations.delete(files.get(i));
+                                        } catch (Exception e) {
+                                            boolean b = getDocumentFile(sources.get(i)).delete();
+                                            if (!b)
+                                                Toast.makeText(context, "Sorry, Could not delete the selected file", Toast.LENGTH_SHORT).show();
+                                        }
+//                                        context.getContentResolver().delete(
+//                                                MediaStore.Audio.Media.EXTERNAL_CONTENT_URI,
+//                                                MediaStore.MediaColumns.DATA + " = ?",
+//                                                new String[]{data_manager.getFiles(i).getPath()});
+                                        context.sendBroadcast(new Intent(Intent.ACTION_MEDIA_SCANNER_SCAN_FILE, Uri.fromFile(files.get(i))));
+                                        MediaScannerConnection.scanFile(context, new String[]{files.get(i).getPath()},
+                                                null, new MediaScannerConnection.OnScanCompletedListener() {
+                                                    public void onScanCompleted(String path, Uri uri) {
+                                                        context.getContentResolver()
+                                                                .delete(uri, null, null);
+                                                    }
+                                                });
                                     } else {
-                                        if (MainActivity.searchMode)
-                                            Toast.makeText(context, "Can`t delete file on search mode", Toast.LENGTH_SHORT).show();
-                                        else
-                                            MainActivity.documentFile.findFile(files.get(0).getName()).delete();
+//                                        if (MainActivity.searchMode)
+//                                            Toast.makeText(context, "Can`t delete file on search mode", Toast.LENGTH_SHORT).show();
+//                                        else
+//                                            MainActivity.documentFile.findFile(files.get(0).getName()).delete();
+                                        getDocumentFile(files.get(i)).delete();
                                     }
                                 }
-                                data_manager.setRecycler(MainActivity.getCurrentPath(), sortFlags);
+                                if (!MainActivity.collections)
+                                    data_manager.setRecycler(MainActivity.getCurrentPath(), sortFlags);
                                 if (MainActivity.gridView)
                                     gadapter.notifyDataSetChanged();
                                 else
@@ -202,7 +263,7 @@ public class ActionModeCallBack implements ActionMode.Callback {
                     @Override
                     public void onClick(View v) {
                         String newName = editText.getText().toString();
-                        if (!MainActivity.sdCardmode) {
+                        if (!MainActivity.sdCardmode && !MainActivity.collections) {
                             if (MainActivity.gridView) {
                                 boolean jobDone = gadapter.getSelectedItemsFile().get(0).renameTo(new File(MainActivity.getCurrentPath().getPath() + "/" + newName));
                                 if (!jobDone)
@@ -212,10 +273,25 @@ public class ActionModeCallBack implements ActionMode.Callback {
                                 if (!jobDone)
                                     Toast.makeText(context, "Invalid FileName", Toast.LENGTH_SHORT).show();
                             }
+                        } else if (MainActivity.collections) {
+                            final ContentValues contentValues = new ContentValues();
+                            contentValues.put(MediaStore.MediaColumns.DISPLAY_NAME, newName);
+                            context.sendBroadcast(new Intent(Intent.ACTION_MEDIA_SCANNER_SCAN_FILE, Uri.fromFile(adapter.getSelectedItemsFile().get(0))));
+                            MediaScannerConnection.scanFile(context, new String[]{adapter.getSelectedItemsFile().get(0).getPath()},
+                                    null, new MediaScannerConnection.OnScanCompletedListener() {
+                                        public void onScanCompleted(String path, Uri uri) {
+                                            context.getContentResolver()
+                                                    .update(uri, contentValues, null, null);
+                                        }
+                                    });
                         } else {
-                            boolean x = MainActivity.documentFile.findFile(adapter.getSelectedItemsFile().get(0).getName()).renameTo(newName);
+                            boolean x;
+                            if (MainActivity.gridView)
+                                x = getDocumentFile(gadapter.getSelectedItemsFile().get(0)).renameTo(newName);
+                            else
+                                x = getDocumentFile(adapter.getSelectedItemsFile().get(0)).renameTo(newName);
                             if (!x)
-                                Toast.makeText(context, "Sorry unable to process the request", Toast.LENGTH_LONG).show();
+                                Toast.makeText(context, "Invalid FileName", Toast.LENGTH_LONG).show();
                         }
                         alertDialog1.cancel();
                         if (MainActivity.gridView)
@@ -224,7 +300,8 @@ public class ActionModeCallBack implements ActionMode.Callback {
                             adapter.clearSelection();
                         MainActivity.isPasteMode = false;
                         MainActivity.isSelection = false;
-                        data_manager.setRecycler(MainActivity.getCurrentPath(), sortFlags);
+                        if (!MainActivity.collections)
+                            data_manager.setRecycler(MainActivity.getCurrentPath(), sortFlags);
                         if (MainActivity.gridView)
                             gadapter.notifyDataSetChanged();
                         else
@@ -265,53 +342,125 @@ public class ActionModeCallBack implements ActionMode.Callback {
                     new File_Properties(dialog).setProperties(adapter.getSelectedItemsFile().get(0));
                 break;
             case R.id.paste:
-                for (int i = 0; i < sources.size(); i++) {
-                    if (sources.get(i).getPath().equals(new File(MainActivity.getCurrentPath(), sources.get(i).getName()).getPath())) {
-                        AlertDialog.Builder builder2 = new AlertDialog.Builder(context);
-                        builder2.setMessage("Files with same name already exists")
-                                .setTitle("Warning")
-                                .setCancelable(false).setPositiveButton("Ok", new DialogInterface.OnClickListener() {
-                            @Override
-                            public void onClick(DialogInterface dialog, int which) {
-                                dialog.cancel();
-                            }
-                        });
-                        AlertDialog alertDialog2 = builder2.create();
-                        alertDialog2.show();
-
-                        break;
-                    } else {
-                        try {
-                            if (MainActivity.sdCardmode) {
-                                FileOperations.pasteDoc(source_doc.get(i), MainActivity.documentFile);
-                            }
-                            new FileOperations().copyFile(sources.get(i), MainActivity.getCurrentPath(), sources.get(i).getName());
-                        } catch (IOException e) {
-                        }
-                        if (!MainActivity.sdCardmode) {
-                            if (cut) {
-                                while (sources.get(i).exists()) {
-                                    try {
-                                        FileOperations.delete(sources.get(i));
-                                    } catch (Exception e) {
-                                        Toast.makeText(context, "Sorry, unable to delete the file, don`t have permission", Toast.LENGTH_SHORT).show();
+                MainActivity.collections = false;
+                NotificationCompat.Builder builder1;
+                NotificationManagerCompat managerCompat;
+                builder1 = new Builder(context, MainActivity.CHANNEL_ID);
+                builder1.setContentTitle("Copying Files").setSmallIcon(R.mipmap.my_app_icon).setAutoCancel(true).setPriority(PRIORITY_DEFAULT);
+                builder1.setContentText("Copying files from " + sources.get(0).getName() + " to " + MainActivity.getCurrentPath().getName());
+                builder1.setLargeIcon(BitmapFactory.decodeResource(context.getResources(), R.drawable.copy));
+                managerCompat = NotificationManagerCompat.from(context);
+                builder1.setContentTitle("Files copied sucessfully");
+                builder1.setContentText("100% completed");
+                managerCompat.notify(1, builder1.build());
+                backGroundCopy(mode);
+//                for (int i = 0; i < sources.size(); i++) {
+//                    if (sources.get(i).getPath().equals(new File(MainActivity.getCurrentPath(), sources.get(i).getName()).getPath())) {
+//                        AlertDialog.Builder builder2 = new AlertDialog.Builder(context);
+//                        builder2.setMessage("Files with same name already exists")
+//                                .setTitle("Warning")
+//                                .setCancelable(false).setPositiveButton("Ok", new DialogInterface.OnClickListener() {
+//                            @Override
+//                            public void onClick(DialogInterface dialog, int which) {
+//                                dialog.cancel();
+//                            }
+//                        });
+//                        AlertDialog alertDialog2 = builder2.create();
+//                        alertDialog2.show();
+//                        break;
+//                    }
+//                }
+                if (cut) {
+                    new Thread(new Runnable() {
+                        @Override
+                        public void run() {
+                            for (int i = 0; i < sources.size(); i++) {
+                                if (!MainActivity.sdCardmode) {
+                                    while (sources.get(i).exists()) {
+                                        try {
+                                            FileOperations.delete(sources.get(i));
+                                            context.sendBroadcast(new Intent(Intent.ACTION_MEDIA_SCANNER_SCAN_FILE, Uri.fromFile(sources.get(i))));
+                                            MediaScannerConnection.scanFile(context, new String[]{sources.get(i).getPath()},
+                                                    null, new MediaScannerConnection.OnScanCompletedListener() {
+                                                        public void onScanCompleted(String path, Uri uri) {
+                                                            context.getContentResolver()
+                                                                    .delete(uri, null, null);
+                                                        }
+                                                    });
+                                        } catch (Exception e) {
+                                            boolean b = getDocumentFile(sources.get(i)).delete();
+                                            if (!b)
+                                                Toast.makeText(context, "Sorry, Could not delete the selected file", Toast.LENGTH_SHORT).show();
+                                        }
                                     }
+                                } else {
+                                    getDocumentFile(sources.get(i)).delete();
                                 }
                             }
-                        } else {
-                            source_doc.get(i).delete();
+                            handler.post(new Runnable() {
+                                @Override
+                                public void run() {
+
+                                    mode.finish();
+                                    data_manager.setRecycler(MainActivity.getCurrentPath(), sortFlags);
+                                    if (MainActivity.gridView)
+                                        gadapter.notifyDataSetChanged();
+                                    else
+                                        adapter.notifyDataSetChanged();
+                                }
+                            });
                         }
-                    }
+                    }).start();
                 }
                 mode.finish();
-                data_manager.setRecycler(MainActivity.getCurrentPath(), sortFlags);
-                if (MainActivity.gridView)
-                    gadapter.notifyDataSetChanged();
-                else
-                    adapter.notifyDataSetChanged();
+                if (MainActivity.sdCardmode) {
+                    data_manager.setRecycler(MainActivity.getCurrentPath(), sortFlags);
+                    if (MainActivity.gridView)
+                        gadapter.notifyDataSetChanged();
+                    else
+                        adapter.notifyDataSetChanged();
+                }
+//                data_manager.setRecycler(MainActivity.getCurrentPath(), sortFlags);
+//                if (MainActivity.gridView)
+//                    gadapter.notifyDataSetChanged();
+//                else
+//                    adapter.notifyDataSetChanged();
                 cut = false;
                 break;
+            case R.id.share:
+                ArrayList<Uri> uris = new ArrayList<>();
+                boolean possib = true;
+                if (MainActivity.gridView) {
+                    for (int i = 0; i < gadapter.getSelectedItemsFile().size(); i++) {
+                        if (gadapter.getSelectedItemsFile().get(i).isDirectory()) {
+                            Toast.makeText(context, "Sorry couldn`t share directories", Toast.LENGTH_SHORT).show();
+                            possib = false;
+                            break;
+                        }
+                        uris.add(FileProvider.getUriForFile(context, "com.sachan.prateek", gadapter.getSelectedItemsFile().get(i)));
+                    }
+                } else {
+                    for (int i = 0; i < adapter.getSelectedItemsFile().size(); i++) {
+                        if (adapter.getSelectedItemsFile().get(i).isDirectory()) {
+                            Toast.makeText(context, "Sorry couldn`t share directories", Toast.LENGTH_SHORT).show();
+                            possib = false;
+                            break;
+                        }
+                        uris.add(FileProvider.getUriForFile(context, "com.sachan.prateek", adapter.getSelectedItemsFile().get(i)));
+                    }
+                }
+                if (possib) {
+                    try {
+                        Intent intent = new Intent(Intent.ACTION_SEND_MULTIPLE);
+                        intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
+                        intent.putParcelableArrayListExtra(Intent.EXTRA_STREAM, uris);
+                        intent.setType("image/*");
+                        context.startActivity(Intent.createChooser(intent, "Send Via"));
+                    } catch (Exception e) {
+                    }
+                }
         }
+
         return false;
     }
 
@@ -324,5 +473,111 @@ public class ActionModeCallBack implements ActionMode.Callback {
         MainActivity.isPasteMode = false;
         MainActivity.isSelection = false;
         cut = false;
+    }
+
+//    class BackgroundPaste extends AsyncTask<Object, Integer, Object> {
+//        long totalSize;
+//        NotificationCompat.Builder builder;
+//        NotificationManagerCompat managerCompat;
+//
+//        BackgroundPaste() {
+//            for (int i = 0; i < sources.size(); i++) {
+//                totalSize += File_Properties.getFileFolderSize(sources.get(i));
+//            }
+//            builder = new Builder(context, MainActivity.CHANNEL_ID);
+//            builder.setContentTitle("Copying Files").setSmallIcon(R.mipmap.my_app_icon).setAutoCancel(true).setPriority(PRIORITY_DEFAULT);
+//            builder.setContentText("Copying files from " + sources.get(0).getName() + " to " + MainActivity.getCurrentPath().getName());
+//            builder.setProgress(100, 0, false);
+//            managerCompat = NotificationManagerCompat.from(context);
+//            managerCompat.notify(1, builder.build());
+//
+
+//        @Override
+//        protected void onPreExecute() {
+//            super.onPreExecute();
+//            Toast.makeText(context, "FJILgh", Toast.LENGTH_SHORT).show();
+//        }
+
+
+//        @Override
+//        protected Object doInBackground(Object... objects) {
+//
+//            for (int i = 0; i < sources.size(); i++) {
+//                long sizedone = 0;
+//                try {
+//                    new FileOperations().copyFile(sources.get(i), MainActivity.getCurrentPath(), sources.get(i).getName());
+//                } catch (IOException e) {
+//                    e.printStackTrace();
+//                }
+//                if (totalSize != 0)
+//                    publishProgress((int) (sizedone / totalSize) * 100);
+//            }
+//            return null;
+//        }
+//
+//        @Override
+//        protected void onProgressUpdate(Integer... values) {
+//            builder.setProgress(100, values[0], false);
+//            managerCompat.notify(1, builder.build());
+//        }
+
+
+    //        @Override
+//        protected void onPostExecute(Object o) {
+//            NotificationCompat.Builder builder;
+//            NotificationManagerCompat managerCompat;
+//            builder = new Builder(context, MainActivity.CHANNEL_ID);
+//            builder.setContentTitle("Copying Files").setSmallIcon(R.mipmap.my_app_icon).setAutoCancel(true).setPriority(PRIORITY_DEFAULT);
+//            builder.setContentText("Copying files from " + sources.get(0).getName() + " to " + MainActivity.getCurrentPath().getName());
+//            builder.setLargeIcon(BitmapFactory.decodeResource(context.getResources(), R.drawable.copy));
+//            builder.setProgress(100, 0, false);
+//            managerCompat = NotificationManagerCompat.from(context);
+//            managerCompat.notify(1, builder.build());
+//            builder.setContentTitle("Files copied sucessfully");
+//            builder.setContentText("100% completed");
+//            managerCompat.notify(1, builder.build());
+//            data_manager.setRecycler(MainActivity.getCurrentPath(), sortFlags);
+//            if (MainActivity.gridView)
+//                gadapter.notifyDataSetChanged();
+//            else
+//                adapter.notifyDataSetChanged();
+//            cut = false;
+//        }
+//    }
+    void backGroundCopy(final ActionMode mode) {
+        Thread myThread = new Thread(new Runnable() {
+            @Override
+            public void run() {
+
+                for (int i = 0; i < sources.size(); i++) {
+                    if (!MainActivity.sdCardmode) {
+                        try {
+                            FileOperations.copyFolder(sources.get(i), MainActivity.getCurrentPath());
+                        } catch (IOException e) {
+                            if (MainActivity.isExternalSD_available)
+                                fileOperations.pasteDoc(sources.get(i), MainActivity.getCurrentPath(), context);
+                            e.printStackTrace();
+                        }
+                    } else {
+                        if (MainActivity.sdCardmode)
+                            fileOperations.pasteDoc(sources.get(i), MainActivity.getCurrentPath(), context);
+                    }
+                }
+
+                handler.post(new Runnable() {
+                    @Override
+                    public void run() {
+                        mode.finish();
+                        data_manager.setRecycler(MainActivity.getCurrentPath(), sortFlags);
+                        if (MainActivity.gridView)
+                            gadapter.notifyDataSetChanged();
+                        else
+                            adapter.notifyDataSetChanged();
+                    }
+                });
+
+            }
+        });
+        myThread.start();
     }
 }

@@ -1,6 +1,13 @@
 package com.sachan.prateek.filemanager;
 
 import android.annotation.SuppressLint;
+import android.content.Context;
+import android.database.Cursor;
+import android.net.Uri;
+import android.provider.MediaStore;
+import android.support.v4.content.CursorLoader;
+import android.webkit.MimeTypeMap;
+import android.widget.Toast;
 
 import java.io.File;
 import java.io.IOException;
@@ -15,6 +22,7 @@ import java.util.List;
 
 public class Data_Manager {
     public List<String> name;
+    Context mContext;
     private File[] files;
     private List<String> date_and_time;
 
@@ -39,7 +47,7 @@ public class Data_Manager {
             sortBySizeReverse(files);
         for (File file : files) {
             name.add(file.getName());
-            @SuppressLint("SimpleDateFormat") SimpleDateFormat dateFormat = new SimpleDateFormat("dd/MM/yyyy HH:mm:ss");
+            @SuppressLint("SimpleDateFormat") SimpleDateFormat dateFormat = new SimpleDateFormat("dd/MM/yyyy | HH:mm:ss");
             date_and_time.add(dateFormat.format(file.lastModified()));
         }
     }
@@ -51,7 +59,7 @@ public class Data_Manager {
         for (int i = 0; i < list.size(); i++) {
             files[i] = list.get(i);
             name.add(files[i].getName());
-            @SuppressLint("SimpleDateFormat") SimpleDateFormat dateFormat = new SimpleDateFormat("dd/MM/yyyy HH:mm:ss");
+            @SuppressLint("SimpleDateFormat") SimpleDateFormat dateFormat = new SimpleDateFormat("dd/MM/yyyy | HH:mm:ss");
             date_and_time.add(dateFormat.format(files[i].lastModified()));
         }
     }
@@ -86,7 +94,9 @@ public class Data_Manager {
         else if (s.contains(".docx") || s.contains(".txt"))
             return R.drawable.docx;
         else if (fileType.contains("audio/"))
-            return R.drawable.mp_three;
+            return R.drawable.audio;
+        else if (fileType.contains("video/"))
+            return R.drawable.video;
         else if (fileType.contains("image/"))
             return R.drawable.image;
         else if (s.contains(".pdf"))
@@ -152,4 +162,210 @@ public class Data_Manager {
             }
         }));
     }
+
+    void setImagesData(Context mContext) {
+        this.mContext = mContext;
+        date_and_time = new ArrayList<>();
+        name = new ArrayList<>();
+        String[] projection = new String[]{
+                MediaStore.Images.Media._ID,
+                MediaStore.Images.Media.DATA
+        };
+
+        Uri images = MediaStore.Images.Media.EXTERNAL_CONTENT_URI;
+        CursorLoader loader = new CursorLoader(mContext, images, projection, null, null, null);
+        Cursor cursor = loader.loadInBackground();
+        cursor.moveToFirst();
+        int column_index = cursor.getColumnIndexOrThrow(MediaStore.Images.Media.DATA);
+        if (cursor != null) {
+            files = new File[cursor.getCount()];
+        }
+        int i = 0;
+        do {
+            files[i] = new File(cursor.getString(column_index));
+            @SuppressLint("SimpleDateFormat") SimpleDateFormat dateFormat = new SimpleDateFormat("dd/MM/yyyy | HH:mm:ss");
+            date_and_time.add(dateFormat.format(files[i].lastModified()));
+            name.add(files[i].getName());
+            i++;
+        } while (cursor.moveToNext());
+    }
+
+    void setAudio(Context context) {
+        this.mContext = context;
+        date_and_time = new ArrayList<>();
+        name = new ArrayList<>();
+        Uri audioUri = MediaStore.Audio.Media.EXTERNAL_CONTENT_URI;
+        String[] projection = new String[]{
+                MediaStore.Audio.Media.DATA
+        };
+        Cursor cursor = context.getContentResolver().query(audioUri, projection, null, null, null);
+        files = new File[cursor.getCount()];
+        cursor.moveToFirst();
+        int i = 0;
+        if (cursor.getCount() != 0) {
+            do {
+                files[i] = new File(cursor.getString(cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.DATA)));
+                @SuppressLint("SimpleDateFormat") SimpleDateFormat dateFormat = new SimpleDateFormat("dd/MM/yyyy | HH:mm:ss");
+                date_and_time.add(dateFormat.format(files[i].lastModified()));
+                name.add(files[i].getName());
+                i++;
+            } while (cursor.moveToNext());
+        } else {
+            Toast.makeText(context, "No Audio Files Present", Toast.LENGTH_LONG).show();
+        }
+    }
+
+    void setDocs(Context context) {
+        mContext = context;
+        date_and_time = new ArrayList<>();
+        name = new ArrayList<>();
+        String pdf = MimeTypeMap.getSingleton().getMimeTypeFromExtension("pdf");
+        String doc = MimeTypeMap.getSingleton().getMimeTypeFromExtension("doc");
+        String docx = MimeTypeMap.getSingleton().getMimeTypeFromExtension("docx");
+        String xls = MimeTypeMap.getSingleton().getMimeTypeFromExtension("xls");
+        String xlsx = MimeTypeMap.getSingleton().getMimeTypeFromExtension("xlsx");
+        String ppt = MimeTypeMap.getSingleton().getMimeTypeFromExtension("ppt");
+        String pptx = MimeTypeMap.getSingleton().getMimeTypeFromExtension("pptx");
+        String txt = MimeTypeMap.getSingleton().getMimeTypeFromExtension("txt");
+        String html = MimeTypeMap.getSingleton().getMimeTypeFromExtension("html");
+        Uri uri = MediaStore.Files.getContentUri("external");
+        String[] projection = {MediaStore.Files.FileColumns.DATA};
+        String selection = MediaStore.Files.FileColumns.MIME_TYPE + "=?"
+                + " OR " + MediaStore.Files.FileColumns.MIME_TYPE + "=?"
+                + " OR " + MediaStore.Files.FileColumns.MIME_TYPE + "=?"
+                + " OR " + MediaStore.Files.FileColumns.MIME_TYPE + "=?"
+                + " OR " + MediaStore.Files.FileColumns.MIME_TYPE + "=?"
+                + " OR " + MediaStore.Files.FileColumns.MIME_TYPE + "=?"
+                + " OR " + MediaStore.Files.FileColumns.MIME_TYPE + "=?"
+                + " OR " + MediaStore.Files.FileColumns.MIME_TYPE + "=?"
+                + " OR " + MediaStore.Files.FileColumns.MIME_TYPE + "=?"
+                + " OR " + MediaStore.Files.FileColumns.MIME_TYPE + "=?"
+                + " OR " + MediaStore.Files.FileColumns.MIME_TYPE + "=?";
+        String[] args = new String[]{pdf, doc, docx, xls, xlsx, ppt, pptx, txt, html};
+
+        Cursor cursor = mContext.getContentResolver().query(uri, projection, selection, args, null);
+        files = new File[cursor.getCount()];
+        cursor.moveToFirst();
+        int i = 0;
+        if (cursor.getCount() != 0) {
+            do {
+                files[i] = new File(cursor.getString(cursor.getColumnIndexOrThrow(MediaStore.Files.FileColumns.DATA)));
+                @SuppressLint("SimpleDateFormat") SimpleDateFormat dateFormat = new SimpleDateFormat("dd/MM/yyyy | HH:mm:ss");
+                date_and_time.add(dateFormat.format(files[i].lastModified()));
+                name.add(files[i].getName());
+                i++;
+            } while (cursor.moveToNext());
+        } else {
+            Toast.makeText(context, "No Document Files Present", Toast.LENGTH_LONG).show();
+        }
+    }
+
+    void sortCollectionsBySize() {
+        sortBySize(files);
+        date_and_time = new ArrayList<>();
+        name = new ArrayList<>();
+        for (int i = 0; i < files.length; i++) {
+            name.add(files[i].getName());
+            @SuppressLint("SimpleDateFormat") SimpleDateFormat dateFormat = new SimpleDateFormat("dd/MM/yyyy | HH:mm:ss");
+            date_and_time.add(dateFormat.format(files[i].lastModified()));
+        }
+
+    }
+
+    void sortCollectionsByName() {
+        sortByName(files);
+        date_and_time = new ArrayList<>();
+        name = new ArrayList<>();
+        for (int i = 0; i < files.length; i++) {
+            name.add(files[i].getName());
+            @SuppressLint("SimpleDateFormat") SimpleDateFormat dateFormat = new SimpleDateFormat("dd/MM/yyyy | HH:mm:ss");
+            date_and_time.add(dateFormat.format(files[i].lastModified()));
+        }
+
+    }
+
+    void sortCollectionsByDate() {
+        sortByDate(files);
+        date_and_time = new ArrayList<>();
+        name = new ArrayList<>();
+        for (int i = 0; i < files.length; i++) {
+            name.add(files[i].getName());
+            @SuppressLint("SimpleDateFormat") SimpleDateFormat dateFormat = new SimpleDateFormat("dd/MM/yyyy | HH:mm:ss");
+            date_and_time.add(dateFormat.format(files[i].lastModified()));
+        }
+
+    }
+//    public static DocumentFile getDocumentFile(final File file) {
+//        String baseFolder = getExtSdCardFolder(file);
+//        String relativePath = null;
+//
+//        if (baseFolder == null) {
+//            return null;
+//        }
+//
+//        try {
+//            String fullPath = file.getCanonicalPath();
+//            relativePath = fullPath.substring(baseFolder.length() + 1);
+//        } catch (IOException e) {
+//            Logger.log(e.getMessage());
+//            return null;
+//        }
+//        Uri treeUri = Common.getInstance().getContentResolver().getPersistedUriPermissions().get(0).getUri();
+//
+//        if (treeUri == null) {
+//            return null;
+//        }
+//
+//        // start with root of SD card and then parse through document tree.
+//        DocumentFile document = DocumentFile.fromTreeUri(Common.getInstance(), treeUri);
+//
+//        String[] parts = relativePath.split("\\/");
+//
+//        for (String part : parts) {
+//            DocumentFile nextDocument = document.findFile(part);
+//            if (nextDocument != null) {
+//                document = nextDocument;
+//            }
+//        }
+//
+//        return document;
+//    }
+//
+//
+//    public static String getExtSdCardFolder(File file) {
+//        String[] extSdPaths = getExtSdCardPaths();
+//        try {
+//            for (int i = 0; i < extSdPaths.length; i++) {
+//                if (file.getCanonicalPath().startsWith(extSdPaths[i])) {
+//                    return extSdPaths[i];
+//                }
+//            }
+//        } catch (IOException e) {
+//            return null;
+//        }
+//        return null;
+//    }
+//
+//    @TargetApi(Build.VERSION_CODES.KITKAT)
+//    public static String[] getExtSdCardPaths() {
+//        List<String> paths = new ArrayList<>();
+//        for (File file : Common.getInstance().getExternalFilesDirs("external")) {
+//
+//            if (file != null && !file.equals(Common.getInstance().getExternalFilesDir("external"))) {
+//                int index = file.getAbsolutePath().lastIndexOf("/Android/data");
+//                if (index < 0) {
+//                    Log.w("asd", "Unexpected external file dir: " + file.getAbsolutePath());
+//                } else {
+//                    String path = file.getAbsolutePath().substring(0, index);
+//                    try {
+//                        path = new File(path).getCanonicalPath();
+//                    } catch (IOException e) {
+//                        // Keep non-canonical path.
+//                    }
+//                    paths.add(path);
+//                }
+//            }
+//        }
+//        return paths.toArray(new String[paths.size()]);
+
 }
