@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:background="@drawable/state_list_drawable"
+    android:orientation="vertical"
+    android:padding="10sp">
+
+    <ImageView
+        android:id="@+id/icon_grid"
+        android:layout_width="75sp"
+        android:layout_height="75sp"
+        android:scaleType="centerCrop"
+        android:src="@drawable/foldericon" />
+
+    <TextView
+        android:id="@+id/text_grid"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:layout_marginTop="5sp"
+        android:text="Folder"
+        android:textColor="#000"
+        android:textStyle="bold" />
+</LinearLayout>

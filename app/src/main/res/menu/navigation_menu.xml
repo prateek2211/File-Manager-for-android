@@ -1,13 +1,52 @@
 <?xml version="1.0" encoding="utf-8"?>
-<menu xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto">
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
     <group
+        android:id="@+id/group1"
         android:checkableBehavior="single">
-    <item
-    android:id="@+id/internal"
-    android:title="@string/internal_storage"/>
-    <item
-        android:id="@+id/sd"
-        android:title="@string/sd_card"/>
+        <item
+            android:id="@+id/internal"
+            android:icon="@drawable/ic_smartphone_black_24dp"
+            android:title="@string/internal_storage" />
+        <item
+            android:id="@+id/document"
+            android:icon="@drawable/docfolder"
+            android:title="@string/documents" />
+        <item
+            android:id="@+id/sd"
+            android:icon="@drawable/ic_sd_storage_black_24dp"
+            android:title="@string/sd_card" />
+        <item
+            android:id="@+id/pictures"
+            android:icon="@drawable/picfold"
+            android:title="@string/pictures" />
+        <item
+            android:id="@+id/music"
+            android:icon="@drawable/musicfold"
+            android:title="@string/music" />
+        <item
+            android:id="@+id/movies"
+            android:icon="@drawable/movfold"
+            android:title="@string/movies" />
+        <item
+            android:id="@+id/downloads"
+            android:icon="@drawable/downfold"
+            android:title="@string/downloads" />
+    </group>
+
+    <group
+        android:id="@+id/group2"
+        android:checkableBehavior="single">
+        <item
+            android:id="@+id/images"
+            android:icon="@drawable/imgs"
+            android:title="@string/images" />
+        <item
+            android:id="@+id/audio"
+            android:icon="@drawable/mp_three"
+            android:title="@string/audio" />
+        <item
+            android:id="@+id/docs"
+            android:icon="@drawable/docs"
+            android:title="@string/docs" />
     </group>
 </menu>

@@ -2,7 +2,7 @@
 <LinearLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
     android:orientation="horizontal"
-    android:background="#fff"
+    android:background="@drawable/state_list_drawable"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:padding="15sp">

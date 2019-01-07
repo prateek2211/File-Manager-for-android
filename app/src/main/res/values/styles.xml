@@ -8,8 +8,13 @@
         <item name="colorAccent">@color/colorAccent</item>
     </style>
 
-    <style name="my_theme" parent="AppTheme" >
+    <style name="my_theme" parent="AppTheme">
         <item name="colorPrimaryDark">@color/colorPrimaryDark</item>
+        <item name="windowActionModeOverlay">true</item>
+        <item name="actionModeBackground">@color/actionmodeback</item>
     </style>
 
+    <style name="my_theme.AppBarOverlay" parent="ThemeOverlay.AppCompat.Dark.ActionBar" />
+
+    <style name="my_theme.PopupOverlay" parent="ThemeOverlay.AppCompat.Light" />
 </resources>

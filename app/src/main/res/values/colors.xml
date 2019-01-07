@@ -3,4 +3,8 @@
     <color name="colorPrimary">#ff0087</color>
     <color name="colorPrimaryDark">#f42da8</color>
     <color name="colorAccent">#2def14</color>
+    <color name="white">#fff</color>
+    <color name="seleccolor">#bcaaa4</color>
+    <color name="actionmodeback">#e85050</color>
+    <color name="niceColor">#f9f2f2</color>
 </resources>
