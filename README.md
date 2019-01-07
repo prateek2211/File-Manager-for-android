@@ -12,6 +12,8 @@ Key Features:
 4. Very easy navigation and nice graphs for storage stats  
 5. Easy Search feature and many more  
 
+APK is available in the repository itself.  
+
 ![img notavailable](https://github.com/Prateek1947/File-Manager-for-android/blob/master/Screenshot_2019-01-07-19-49-53-284_com.sachan.prateek.filemanager.png)
 ![img not available](https://github.com/Prateek1947/File-Manager-for-android/blob/master/Screenshot_2019-01-07-11-05-56-960_com.sachan.prateek.filemanager.png)
 ![img not available](https://github.com/Prateek1947/File-Manager-for-android/blob/master/Screenshot_2019-01-07-10-32-51-372_com.sachan.prateek.filemanager.png)
