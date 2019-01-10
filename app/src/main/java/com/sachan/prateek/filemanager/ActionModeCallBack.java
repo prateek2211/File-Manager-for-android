@@ -129,6 +129,7 @@ public class ActionModeCallBack implements ActionMode.Callback {
                         adapter.notifyDataSetChanged();
                     MainActivity.documentFile = MainActivity.permadDocumentFile;
                 }
+                MainActivity.collections = false;
                 mode.getMenuInflater().inflate(R.menu.paste_menu, mode.getMenu());
                 break;
             case R.id.copy:
@@ -159,6 +160,7 @@ public class ActionModeCallBack implements ActionMode.Callback {
                         adapter.notifyDataSetChanged();
                     MainActivity.documentFile = MainActivity.permadDocumentFile;
                 }
+                MainActivity.collections = false;
                 mode.getMenuInflater().inflate(R.menu.paste_menu, mode.getMenu());
                 break;
             case R.id.delete:
@@ -196,24 +198,28 @@ public class ActionModeCallBack implements ActionMode.Callback {
                                             }
                                         }
                                     } else if (MainActivity.collections) {
-                                        try {
-                                            FileOperations.delete(files.get(i));
-                                        } catch (Exception e) {
-                                            boolean b = getDocumentFile(sources.get(i)).delete();
-                                            if (!b)
-                                                Toast.makeText(context, "Sorry, Could not delete the selected file", Toast.LENGTH_SHORT).show();
-                                        }
                                         context.sendBroadcast(new Intent(Intent.ACTION_MEDIA_SCANNER_SCAN_FILE, Uri.fromFile(files.get(i))));
-                                        MediaScannerConnection.scanFile(context, new String[]{files.get(i).getPath()},
-                                                null, new MediaScannerConnection.OnScanCompletedListener() {
-                                                    public void onScanCompleted(String path, Uri uri) {
-                                                        context.getContentResolver()
-                                                                .delete(uri, null, null);
-                                                    }
-                                                });
+                                        if (MainActivity.whichCollection == 1) {
+                                            context.getContentResolver().delete(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, MediaStore.Images.Media.DATA + "=?", new String[]{files.get(i).getPath()});
+                                        }
+                                        if (MainActivity.whichCollection == 2) {
+                                            context.getContentResolver().delete(MediaStore.Audio.Media.EXTERNAL_CONTENT_URI, MediaStore.Images.Media.DATA + "=?", new String[]{files.get(i).getPath()});
+                                        }
+                                        if (MainActivity.whichCollection == 3) {
+                                            context.getContentResolver().delete(MediaStore.Files.getContentUri("external"), MediaStore.MediaColumns.DATA + "=?", new String[]{files.get(i).getPath()});
+                                        }
                                     } else {
                                         getDocumentFile(files.get(i)).delete();
                                     }
+                                }
+                                if (MainActivity.collections) {
+                                    if (MainActivity.whichCollection == 1)
+                                        data_manager.setImagesData(context);
+                                    if (MainActivity.whichCollection == 2)
+                                        data_manager.setAudio(context);
+                                    if (MainActivity.whichCollection == 3)
+                                        data_manager.setDocs(context);
+
                                 }
                                 if (!MainActivity.collections)
                                     data_manager.setRecycler(MainActivity.getCurrentPath(), sortFlags);
@@ -255,16 +261,23 @@ public class ActionModeCallBack implements ActionMode.Callback {
                                     Toast.makeText(context, "Invalid FileName", Toast.LENGTH_SHORT).show();
                             }
                         } else if (MainActivity.collections) {
-                            final ContentValues contentValues = new ContentValues();
+                            ContentValues contentValues = new ContentValues();
                             contentValues.put(MediaStore.MediaColumns.DISPLAY_NAME, newName);
-                            context.sendBroadcast(new Intent(Intent.ACTION_MEDIA_SCANNER_SCAN_FILE, Uri.fromFile(adapter.getSelectedItemsFile().get(0))));
-                            MediaScannerConnection.scanFile(context, new String[]{adapter.getSelectedItemsFile().get(0).getPath()},
-                                    null, new MediaScannerConnection.OnScanCompletedListener() {
-                                        public void onScanCompleted(String path, Uri uri) {
-                                            context.getContentResolver()
-                                                    .update(uri, contentValues, null, null);
-                                        }
-                                    });
+                            String where = MediaStore.MediaColumns.DATA + "=?";
+                            String[] args;
+                            if (MainActivity.gridView)
+                                args = new String[]{gadapter.getSelectedItemsFile().get(0).getPath()};
+                            else
+                                args = new String[]{adapter.getSelectedItemsFile().get(0).getPath()};
+                            if (MainActivity.whichCollection == 1) {
+                                context.getContentResolver().update(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, contentValues, where, args);
+                            }
+                            if (MainActivity.whichCollection == 2) {
+                                context.getContentResolver().update(MediaStore.Audio.Media.EXTERNAL_CONTENT_URI, contentValues, where, args);
+                            }
+                            if (MainActivity.whichCollection == 3) {
+                                context.getContentResolver().update(MediaStore.Files.getContentUri("external"), contentValues, where, args);
+                            }
                         } else {
                             boolean x;
                             if (MainActivity.gridView)
@@ -281,6 +294,14 @@ public class ActionModeCallBack implements ActionMode.Callback {
                             adapter.clearSelection();
                         MainActivity.isPasteMode = false;
                         MainActivity.isSelection = false;
+                        if (MainActivity.collections) {
+                            if (MainActivity.whichCollection == 1)
+                                data_manager.setImagesData(context);
+                            if (MainActivity.whichCollection == 2)
+                                data_manager.setAudio(context);
+                            if (MainActivity.whichCollection == 3)
+                                data_manager.setDocs(context);
+                        }
                         if (!MainActivity.collections)
                             data_manager.setRecycler(MainActivity.getCurrentPath(), sortFlags);
                         if (MainActivity.gridView)

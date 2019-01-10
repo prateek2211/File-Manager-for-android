@@ -69,6 +69,7 @@ public class MainActivity extends AppCompatActivity {
     static boolean gridView;
     static boolean searchMode;
     static int sortFlag;
+    static int whichCollection;
     static boolean collections;
     static long imagesSize;
     static long sdimagesSize;
@@ -373,6 +374,7 @@ public class MainActivity extends AppCompatActivity {
                 if (menuItem.getItemId() == R.id.images) {
                     collections = true;
                     sdCardmode = false;
+                    whichCollection = 1;
                     data_manager.setImagesData(context);
                     if (gridView)
                         adapter.notifyDataSetChanged();
@@ -382,6 +384,7 @@ public class MainActivity extends AppCompatActivity {
                 if (menuItem.getItemId() == R.id.audio) {
                     sdCardmode = false;
                     collections = true;
+                    whichCollection = 2;
                     data_manager.setAudio(context);
                     if (gridView)
                         adapter.notifyDataSetChanged();
@@ -391,6 +394,7 @@ public class MainActivity extends AppCompatActivity {
                 if (menuItem.getItemId() == R.id.docs) {
                     sdCardmode = false;
                     collections = true;
+                    whichCollection = 3;
                     data_manager.setDocs(context);
                     if (gridView)
                         adapter.notifyDataSetChanged();
