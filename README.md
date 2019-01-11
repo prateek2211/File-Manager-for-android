@@ -10,7 +10,8 @@ Key Features:
 2. Notification during copying  
 3. Seperate option to access images, docs, etc at one place  
 4. Very easy navigation and nice graphs for storage stats  
-5. Easy Search feature and many more  
+5. Easy Search feature and many more
+6. Pin favourites on navigation bar
 
 APK is available in the repository itself.  
 
