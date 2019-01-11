@@ -80,6 +80,8 @@ public class MainActivity extends AppCompatActivity {
     static long docsSize;
     static long sddocsSize;
     static boolean isExternalSD_available;
+    static boolean favourites;
+    NavigationView navigationView;
     EditText editText;
     RecyclerView recyclerView;
     Toolbar toolbar;
@@ -144,21 +146,21 @@ public class MainActivity extends AppCompatActivity {
                 drawerLayout.openDrawer(GravityCompat.START);
                 return true;
             case R.id.sortByName:
-                if (collections)
+                if (collections || favourites)
                     data_manager.sortCollectionsByName();
                 else
                     sortFlag = 1;
                 refresh();
                 break;
             case R.id.sortBySize:
-                if (collections)
+                if (collections || favourites)
                     data_manager.sortCollectionsBySize();
                 else
                     sortFlag = 3;
                 refresh();
                 break;
             case R.id.sortByDate:
-                if (collections)
+                if (collections || favourites)
                     data_manager.sortCollectionsByDate();
                 else
                     sortFlag = 2;
@@ -236,7 +238,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     void refresh() {
-        if (!collections)
+        if (!collections && !favourites)
             data_manager.setRecycler(path, sortFlag);
         if (gridView)
             adapter.notifyDataSetChanged();
@@ -321,7 +323,7 @@ public class MainActivity extends AppCompatActivity {
         actionBar.setDisplayHomeAsUpEnabled(true);
         actionBar.setHomeAsUpIndicator(R.drawable.ic_menu_black_24dp);
         drawerLayout = findViewById(R.id.drawer);
-        NavigationView navigationView = findViewById(R.id.navigation);
+        navigationView = findViewById(R.id.navigation);
         navigationView.getMenu().findItem(R.id.internal).setChecked(true);
         if (!isExternalSD_available)
             navigationView.getMenu().findItem(R.id.sd).setVisible(false);
@@ -332,46 +334,55 @@ public class MainActivity extends AppCompatActivity {
                 drawerLayout.closeDrawers();
                 if (isExternalSD_available) {
                     if (menuItem.getItemId() == R.id.sd) {
+                        favourites = false;
                         collections = false;
                         switchToSD();
                         sdCardmode = true;
                     } else if (menuItem.getItemId() == R.id.internal) {
                         collections = false;
+                        favourites = false;
                         switchToInternal();
                         sdCardmode = false;
                     }
                 }
                 if (menuItem.getItemId() == R.id.internal) {
+                    favourites = false;
                     collections = false;
                     switchToInternal();
                     sdCardmode = false;
                 }
                 if (menuItem.getItemId() == R.id.pictures) {
+                    favourites = false;
                     collections = false;
                     path = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES);
                     refresh();
                 }
                 if (menuItem.getItemId() == R.id.music) {
+                    favourites = false;
                     collections = false;
                     path = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_MUSIC);
                     refresh();
                 }
                 if (menuItem.getItemId() == R.id.downloads) {
+                    favourites = false;
                     collections = false;
                     path = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS);
                     refresh();
                 }
                 if (menuItem.getItemId() == R.id.movies) {
+                    favourites = false;
                     collections = false;
                     path = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_MOVIES);
                     refresh();
                 }
                 if (menuItem.getItemId() == R.id.document) {
+                    favourites = false;
                     collections = false;
                     path = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOCUMENTS);
                     refresh();
                 }
                 if (menuItem.getItemId() == R.id.images) {
+                    favourites = false;
                     collections = true;
                     sdCardmode = false;
                     whichCollection = 1;
@@ -382,6 +393,7 @@ public class MainActivity extends AppCompatActivity {
                         myRecyclerAdapter.notifyDataSetChanged();
                 }
                 if (menuItem.getItemId() == R.id.audio) {
+                    favourites = false;
                     sdCardmode = false;
                     collections = true;
                     whichCollection = 2;
@@ -392,10 +404,20 @@ public class MainActivity extends AppCompatActivity {
                         myRecyclerAdapter.notifyDataSetChanged();
                 }
                 if (menuItem.getItemId() == R.id.docs) {
+                    favourites = false;
                     sdCardmode = false;
                     collections = true;
                     whichCollection = 3;
                     data_manager.setDocs(context);
+                    if (gridView)
+                        adapter.notifyDataSetChanged();
+                    else
+                        myRecyclerAdapter.notifyDataSetChanged();
+                }
+                if (menuItem.getItemId() == R.id.favourites) {
+                    data_manager.setFavourites(context);
+                    favourites = true;
+                    collections = false;
                     if (gridView)
                         adapter.notifyDataSetChanged();
                     else
@@ -427,6 +449,10 @@ public class MainActivity extends AppCompatActivity {
 
                 if (!isSelection) {
                     path = data_manager.getFiles(position);
+                    if (favourites) {
+                        favourites = false;
+                        navigationView.setCheckedItem(R.id.internal);
+                    }
                     if (isPasteMode)
                         actionMode.setTitle(path.getName());
                     if (path.isDirectory()) {

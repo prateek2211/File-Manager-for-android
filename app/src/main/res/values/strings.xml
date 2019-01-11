@@ -36,4 +36,7 @@
     <string name="images">Images</string>
     <string name="audio">Audio</string>
     <string name="docs">Docs</string>
+    <string name="fav">Favourites</string>
+    <string name="pin_to_favourites">Pin to Favourites</string>
+    <string name="remove">Remove</string>
 </resources>

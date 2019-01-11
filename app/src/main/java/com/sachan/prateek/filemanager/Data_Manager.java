@@ -2,6 +2,7 @@ package com.sachan.prateek.filemanager;
 
 import android.annotation.SuppressLint;
 import android.content.Context;
+import android.content.SharedPreferences;
 import android.database.Cursor;
 import android.net.Uri;
 import android.provider.MediaStore;
@@ -19,6 +20,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Set;
 
 public class Data_Manager {
     public List<String> name;
@@ -292,6 +294,28 @@ public class Data_Manager {
             name.add(files[i].getName());
             @SuppressLint("SimpleDateFormat") SimpleDateFormat dateFormat = new SimpleDateFormat("dd/MM/yyyy | HH:mm:ss");
             date_and_time.add(dateFormat.format(files[i].lastModified()));
+        }
+    }
+
+    void setFavourites(Context context) {
+        SharedPreferences sharedPreferences = context.getSharedPreferences("favourites", 0);
+        Set<String> set = sharedPreferences.getStringSet("key", null);
+        if (set != null) {
+            files = new File[set.size()];
+        } else {
+            files = new File[0];
+        }
+        date_and_time = new ArrayList<>();
+        name = new ArrayList<>();
+        int fileIndex = 0;
+        if (set != null) {
+            for (String str : set) {
+                files[fileIndex] = new File(str);
+                @SuppressLint("SimpleDateFormat") SimpleDateFormat dateFormat = new SimpleDateFormat("dd/MM/yyyy | HH:mm:ss");
+                date_and_time.add(dateFormat.format(files[fileIndex].lastModified()));
+                name.add(files[fileIndex].getName());
+                fileIndex++;
+            }
         }
     }
 }
