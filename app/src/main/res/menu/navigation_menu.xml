@@ -8,13 +8,13 @@
             android:icon="@drawable/ic_smartphone_black_24dp"
             android:title="@string/internal_storage" />
         <item
-            android:id="@+id/document"
-            android:icon="@drawable/docfolder"
-            android:title="@string/documents" />
-        <item
             android:id="@+id/sd"
             android:icon="@drawable/ic_sd_storage_black_24dp"
             android:title="@string/sd_card" />
+        <item
+            android:id="@+id/document"
+            android:icon="@drawable/docfolder"
+            android:title="@string/documents" />
         <item
             android:id="@+id/pictures"
             android:icon="@drawable/picfold"
@@ -31,6 +31,10 @@
             android:id="@+id/downloads"
             android:icon="@drawable/downfold"
             android:title="@string/downloads" />
+        <item
+            android:id="@+id/favourites"
+            android:icon="@drawable/favourites"
+            android:title="@string/fav" />
     </group>
 
     <group

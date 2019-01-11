@@ -5,6 +5,7 @@ import android.content.ContentValues;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.graphics.BitmapFactory;
 import android.media.MediaScannerConnection;
 import android.net.Uri;
@@ -31,7 +32,9 @@ import com.sachan.prateek.filemanager.list_utils.MyRecyclerAdapter;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import static android.support.v4.app.NotificationCompat.Builder;
 import static android.support.v4.app.NotificationCompat.PRIORITY_DEFAULT;
@@ -87,6 +90,11 @@ public class ActionModeCallBack implements ActionMode.Callback {
     @Override
     public boolean onCreateActionMode(ActionMode mode, Menu menu) {
         mode.getMenuInflater().inflate(R.menu.contextual_menu, menu);
+        if (MainActivity.favourites)
+            menu.findItem(R.id.remove).setVisible(true);
+        else
+            menu.findItem(R.id.remove).setVisible(false);
+
         source_doc = new ArrayList<>();
         return true;
     }
@@ -223,6 +231,26 @@ public class ActionModeCallBack implements ActionMode.Callback {
                                 }
                                 if (!MainActivity.collections)
                                     data_manager.setRecycler(MainActivity.getCurrentPath(), sortFlags);
+                                if (MainActivity.favourites) {
+                                    SharedPreferences sharedPreferences = context.getSharedPreferences("favourites", 0);
+                                    Set<String> strings = new HashSet<>(sharedPreferences.getStringSet("key", null));
+                                    if (!MainActivity.gridView) {
+                                        for (int i = 0; i < adapter.getSelectedItemCount(); i++) {
+                                            if (strings != null) {
+                                                strings.remove(adapter.getSelectedItemsFile().get(i).getPath());
+                                            }
+                                        }
+                                    } else {
+                                        for (int i = 0; i < gadapter.getSelectedItemCount(); i++) {
+                                            if (strings != null) {
+                                                strings.remove(gadapter.getSelectedItemsFile().get(i).getPath());
+                                            }
+                                        }
+                                    }
+                                    SharedPreferences.Editor editor = sharedPreferences.edit();
+                                    editor.putStringSet("key", strings);
+                                    editor.apply();
+                                }
                                 if (MainActivity.gridView)
                                     gadapter.notifyDataSetChanged();
                                 else
@@ -440,6 +468,54 @@ public class ActionModeCallBack implements ActionMode.Callback {
                     } catch (Exception e) {
                     }
                 }
+                break;
+            case R.id.pin:
+                SharedPreferences sharedPreferences = context.getSharedPreferences("favourites", 0);
+                SharedPreferences.Editor editor = sharedPreferences.edit();
+                Set<String> stringSet = sharedPreferences.getStringSet("key", null);
+
+                Set<String> stringSetTemp = null;
+                if (stringSet != null) {
+                    stringSetTemp = new HashSet<>(stringSet);
+                } else {
+                    stringSetTemp = new HashSet<>();
+                }
+                if (!MainActivity.gridView) {
+                    for (int i = 0; i < adapter.getSelectedItemCount(); i++) {
+                        stringSetTemp.add(adapter.getSelectedItemsFile().get(i).getPath());
+                    }
+                } else {
+                    for (int i = 0; i < gadapter.getSelectedItemCount(); i++) {
+                        stringSetTemp.add(gadapter.getSelectedItemsFile().get(i).getPath());
+                    }
+                }
+                editor.putStringSet("key", stringSetTemp);
+                editor.apply();
+                mode.finish();
+                Toast.makeText(context, "Successfully added to Favourites", Toast.LENGTH_SHORT).show();
+                break;
+            case R.id.remove:
+                sharedPreferences = context.getSharedPreferences("favourites", 0);
+                Set<String> strings = new HashSet<>(sharedPreferences.getStringSet("key", null));
+                if (!MainActivity.gridView) {
+                    for (int i = 0; i < adapter.getSelectedItemCount(); i++) {
+                        strings.remove(adapter.getSelectedItemsFile().get(i).getPath());
+                    }
+                } else {
+                    for (int i = 0; i < gadapter.getSelectedItemCount(); i++) {
+                        strings.remove(gadapter.getSelectedItemsFile().get(i).getPath());
+                    }
+                }
+                editor = sharedPreferences.edit();
+                editor.putStringSet("key", strings);
+                editor.apply();
+                mode.finish();
+                data_manager.setFavourites(context);
+                if (MainActivity.gridView)
+                    gadapter.notifyDataSetChanged();
+                else
+                    adapter.notifyDataSetChanged();
+                break;
         }
 
         return false;
