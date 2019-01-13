@@ -206,7 +206,7 @@ public class ActionModeCallBack implements ActionMode.Callback {
                                             }
                                         }
                                     } else if (MainActivity.collections) {
-                                        context.sendBroadcast(new Intent(Intent.ACTION_MEDIA_SCANNER_SCAN_FILE, Uri.fromFile(files.get(i))));
+//                                        context.sendBroadcast(new Intent(Intent.ACTION_MEDIA_SCANNER_SCAN_FILE, Uri.fromFile(files.get(i))));
                                         if (MainActivity.whichCollection == 1) {
                                             context.getContentResolver().delete(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, MediaStore.Images.Media.DATA + "=?", new String[]{files.get(i).getPath()});
                                         }
@@ -229,27 +229,10 @@ public class ActionModeCallBack implements ActionMode.Callback {
                                         data_manager.setDocs(context);
 
                                 }
-                                if (!MainActivity.collections)
+                                if (!MainActivity.collections && !MainActivity.favourites)
                                     data_manager.setRecycler(MainActivity.getCurrentPath(), sortFlags);
                                 if (MainActivity.favourites) {
-                                    SharedPreferences sharedPreferences = context.getSharedPreferences("favourites", 0);
-                                    Set<String> strings = new HashSet<>(sharedPreferences.getStringSet("key", null));
-                                    if (!MainActivity.gridView) {
-                                        for (int i = 0; i < adapter.getSelectedItemCount(); i++) {
-                                            if (strings != null) {
-                                                strings.remove(adapter.getSelectedItemsFile().get(i).getPath());
-                                            }
-                                        }
-                                    } else {
-                                        for (int i = 0; i < gadapter.getSelectedItemCount(); i++) {
-                                            if (strings != null) {
-                                                strings.remove(gadapter.getSelectedItemsFile().get(i).getPath());
-                                            }
-                                        }
-                                    }
-                                    SharedPreferences.Editor editor = sharedPreferences.edit();
-                                    editor.putStringSet("key", strings);
-                                    editor.apply();
+                                    remove(mode);
                                 }
                                 if (MainActivity.gridView)
                                     gadapter.notifyDataSetChanged();
@@ -315,6 +298,9 @@ public class ActionModeCallBack implements ActionMode.Callback {
                             if (!x)
                                 Toast.makeText(context, "Invalid FileName", Toast.LENGTH_LONG).show();
                         }
+                        if (MainActivity.favourites) {
+                            remove(mode);
+                        }
                         alertDialog1.cancel();
                         if (MainActivity.gridView)
                             gadapter.clearSelection();
@@ -330,7 +316,7 @@ public class ActionModeCallBack implements ActionMode.Callback {
                             if (MainActivity.whichCollection == 3)
                                 data_manager.setDocs(context);
                         }
-                        if (!MainActivity.collections)
+                        if (!MainActivity.collections && !MainActivity.favourites)
                             data_manager.setRecycler(MainActivity.getCurrentPath(), sortFlags);
                         if (MainActivity.gridView)
                             gadapter.notifyDataSetChanged();
@@ -495,26 +481,7 @@ public class ActionModeCallBack implements ActionMode.Callback {
                 Toast.makeText(context, "Successfully added to Favourites", Toast.LENGTH_SHORT).show();
                 break;
             case R.id.remove:
-                sharedPreferences = context.getSharedPreferences("favourites", 0);
-                Set<String> strings = new HashSet<>(sharedPreferences.getStringSet("key", null));
-                if (!MainActivity.gridView) {
-                    for (int i = 0; i < adapter.getSelectedItemCount(); i++) {
-                        strings.remove(adapter.getSelectedItemsFile().get(i).getPath());
-                    }
-                } else {
-                    for (int i = 0; i < gadapter.getSelectedItemCount(); i++) {
-                        strings.remove(gadapter.getSelectedItemsFile().get(i).getPath());
-                    }
-                }
-                editor = sharedPreferences.edit();
-                editor.putStringSet("key", strings);
-                editor.apply();
-                mode.finish();
-                data_manager.setFavourites(context);
-                if (MainActivity.gridView)
-                    gadapter.notifyDataSetChanged();
-                else
-                    adapter.notifyDataSetChanged();
+                remove(mode);
                 break;
         }
 
@@ -530,6 +497,29 @@ public class ActionModeCallBack implements ActionMode.Callback {
         MainActivity.isPasteMode = false;
         MainActivity.isSelection = false;
         cut = false;
+    }
+
+    void remove(ActionMode mode) {
+        SharedPreferences sharedPreferences = context.getSharedPreferences("favourites", 0);
+        Set<String> strings = new HashSet<>(sharedPreferences.getStringSet("key", null));
+        if (!MainActivity.gridView) {
+            for (int i = 0; i < adapter.getSelectedItemCount(); i++) {
+                strings.remove(adapter.getSelectedItemsFile().get(i).getPath());
+            }
+        } else {
+            for (int i = 0; i < gadapter.getSelectedItemCount(); i++) {
+                strings.remove(gadapter.getSelectedItemsFile().get(i).getPath());
+            }
+        }
+        SharedPreferences.Editor editor = sharedPreferences.edit();
+        editor.putStringSet("key", strings);
+        editor.apply();
+        mode.finish();
+        data_manager.setFavourites(context);
+        if (MainActivity.gridView)
+            gadapter.notifyDataSetChanged();
+        else
+            adapter.notifyDataSetChanged();
     }
 
     private void backGroundCopy(final ActionMode mode) {
