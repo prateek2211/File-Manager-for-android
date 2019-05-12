@@ -1,17 +1,20 @@
 # File-Manager-for-android
-Hey Developers!! Made a file manger app for android.
+A file manger app for android.
+
+
 Really took a great bit of hard-work.  
 Hope you enjoy!!  
 
-Please don`t copy the app, would be better if you take some help from it rather than copying 
+Please dont copy the app, would be better if you take some help from it rather than copying 
   
 Key Features:  
 1. Share files easily  
 2. Notification during copying  
 3. Seperate option to access images, docs, etc at one place  
 4. Very easy navigation and nice graphs for storage stats  
-5. Easy Search feature and many more
-6. Pin favourites on navigation bar
+5. Pin favourites on navigation bar
+6. Easy Search feature and many more
+
 
 APK is available in the repository itself.  
 
