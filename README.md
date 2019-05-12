@@ -1,12 +1,8 @@
 # File-Manager-for-android
-A file manger app for android.
+
+An easy-to-use File Manager app for android.
 
 
-Really took a great bit of hard-work.  
-Hope you enjoy!!  
-
-Please dont copy the app, would be better if you take some help from it rather than copying 
-  
 Key Features:  
 1. Share files easily  
 2. Notification during copying  
