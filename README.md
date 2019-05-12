@@ -4,12 +4,12 @@ An easy-to-use File Manager app for android.
 
 
 Key Features:  
-1. Share files easily  
-2. Notification during copying  
-3. Seperate option to access images, docs, etc at one place  
-4. Very easy navigation and nice graphs for storage stats  
-5. Pin favourites on navigation bar
-6. Easy Search feature and many more
+* Share files easily  
+* Notification during copying  
+* Seperate option to access images, docs, etc at one place  
+* Very easy navigation and nice graphs for storage stats  
+* Pin favourites on navigation bar
+* Easy Search feature and many more
 
 
 APK is available in the repository itself.  
